@@ -109,45 +109,11 @@ export default function AdminPanel() {
   const [isSeeding, setIsSeeding] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (u) => {
-      setUser(u);
-      if (u) {
-        try {
-          // Check if user exists in admins collection
-          const adminRef = doc(db, 'admins', u.uid);
-          const adminDoc = await getDoc(adminRef);
-          
-          if (adminDoc.exists() || u.email === 'rakhmadi.rahman90@gmail.com') {
-            if (!adminDoc.exists()) {
-              // Ensure the hardcoded admin is added to the collection
-              try {
-                await setDoc(doc(db, 'admins', u.uid), { uid: u.uid, email: u.email });
-              } catch (e) {
-                console.error("Failed to add hardcoded admin to collection", e);
-              }
-            }
-            setIsAdmin(true);
-            fetchData();
-          } else {
-            setIsAdmin(false);
-            // Auto-seed: check if any admins exist at all
-            const allAdmins = await getDocs(query(collection(db, 'admins'), limit(1)));
-            if (allAdmins.empty) {
-              await setDoc(doc(db, 'admins', u.uid), { uid: u.uid, email: u.email });
-              setIsAdmin(true);
-              fetchData();
-            }
-          }
-        } catch (error) {
-          console.error("Admin check error:", error);
-          setIsAdmin(false);
-        }
-      } else {
-        setIsAdmin(false);
-      }
-      setLoading(false);
-    });
-    return unsubscribe;
+    // Bypass Firebase Auth for custom login
+    setLoading(false);
+    setUser({ uid: 'admin-hardcoded', email: 'admin' } as User);
+    setIsAdmin(true);
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -686,20 +652,6 @@ export default function AdminPanel() {
   };
 
   if (loading) return <div className="flex items-center justify-center min-h-[400px]">Loading...</div>;
-
-  if (!user || !isAdmin) {
-    return (
-      <Card className="max-w-md mx-auto mt-12">
-        <CardHeader className="text-center">
-          <CardTitle>Admin Panel</CardTitle>
-          <CardDescription>Silakan login untuk mengelola sistem booking.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button className="w-full" onClick={signInWithGoogle}>Login dengan Google</Button>
-        </CardContent>
-      </Card>
-    );
-  }
 
   const filteredBookings = bookings.filter(b => {
     const matchesSearch = b.customerName.toLowerCase().includes(searchQuery.toLowerCase()) || 
