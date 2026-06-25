@@ -11,10 +11,11 @@ function convertToBase64(file: File | Blob): Promise<string> {
 
 export async function compressImage(file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.6): Promise<string> {
   const options = {
-    maxSizeMB: 0.1, // 100KB limit
+    maxSizeMB: 0.08, // 80KB limit
     maxWidthOrHeight: Math.max(maxWidth, maxHeight),
     useWebWorker: true,
     initialQuality: quality,
+    fileType: 'image/webp' as const,
   };
 
   try {

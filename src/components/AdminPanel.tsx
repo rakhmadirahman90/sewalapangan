@@ -84,7 +84,7 @@ export default function AdminPanel() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   
   const [searchQuery, setSearchQuery] = useState('');
-  const [dateFilter, setDateFilter] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [dateFilter, setDateFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | BookingStatus>('all');
 
   // Form states
@@ -1279,25 +1279,25 @@ export default function AdminPanel() {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <AnimatePresence mode="popLayout">
+            <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 sm:gap-6">
+              <AnimatePresence>
                 {filteredBookings.map((b) => (
                   <motion.div
                     key={b.id}
-                    layout
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="h-full"
                   >
                     <Card className={cn(
-                      "overflow-hidden shadow-sm hover:shadow-md transition-all duration-500 group border-l-4",
+                      "overflow-hidden shadow-sm hover:shadow-md transition-all duration-500 group border-l-4 h-full flex flex-col",
                       b.status === 'verified' ? "border-l-green-500 border-y-transparent border-r-transparent bg-gradient-to-r from-green-50/30 to-transparent" :
                       b.status === 'pending' ? "border-l-yellow-400 border-y-transparent border-r-transparent bg-gradient-to-r from-yellow-50/30 to-transparent" :
                       "border-l-red-500 border-y-transparent border-r-transparent bg-gradient-to-r from-red-50/30 to-transparent"
                     )}>
-                      <div className="flex flex-col lg:flex-row">
-                        <div className="w-full lg:w-56 bg-white/50 p-6 flex flex-col justify-center items-center border-b lg:border-b-0 lg:border-r border-gray-100 relative transition-colors duration-500">
+                      <div className="flex flex-col lg:flex-row h-full">
+                        <div className="w-full lg:w-48 xl:w-56 bg-white/50 p-4 sm:p-6 flex flex-col justify-center items-center border-b lg:border-b-0 lg:border-r border-gray-100 relative transition-colors duration-500 shrink-0">
                           {b.paymentProofUrl ? (
                             <div className="relative group/img cursor-pointer" onClick={() => window.open(b.paymentProofUrl, '_blank')}>
                               <img src={b.paymentProofUrl} alt="Bukti" className="w-32 h-32 object-cover rounded-xl border-2 border-white shadow-sm transition-transform group-hover/img:scale-105" />
@@ -1322,7 +1322,7 @@ export default function AdminPanel() {
                           </div>
                         </div>
 
-                        <div className="flex-1 p-6 space-y-6 bg-transparent transition-colors duration-500">
+                        <div className="flex-1 p-4 sm:p-6 flex flex-col space-y-4 sm:space-y-6 bg-transparent transition-colors duration-500">
                           <div className="flex flex-wrap justify-between items-start gap-4">
                             <div>
                               <div className="flex items-center gap-2 mb-2">
@@ -1371,7 +1371,7 @@ export default function AdminPanel() {
                             </div>
                           </div>
 
-                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-gray-100 mt-4">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-gray-100 mt-auto">
                             <div className="flex flex-col sm:flex-row flex-wrap items-center gap-2 w-full sm:w-auto">
                               {b.status === 'pending' && (
                                 <div className="flex gap-2 w-full sm:w-auto">
@@ -1460,7 +1460,7 @@ export default function AdminPanel() {
               </AnimatePresence>
 
               {filteredBookings.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border-2 border-dashed border-gray-100">
+                <div className="col-span-full flex flex-col items-center justify-center py-24 bg-white rounded-3xl border-2 border-dashed border-gray-100">
                   <div className="p-4 bg-gray-50 rounded-full mb-4">
                     <Filter className="w-12 h-12 text-gray-200" />
                   </div>
@@ -1756,7 +1756,7 @@ export default function AdminPanel() {
 
             <Card className="border-none shadow-sm overflow-hidden">
               <CardContent className="p-0">
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                   {slots.sort((a,b) => a.startTime.localeCompare(b.startTime)).map((slot) => (
                     <div 
                       key={slot.id} 
