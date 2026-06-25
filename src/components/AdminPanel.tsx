@@ -1174,42 +1174,42 @@ export default function AdminPanel() {
                                 {court.status === 'available' ? 'Tersedia' : 'Penuh'}
                               </span>
                               {court.status === 'booked' && court.bookingId ? (
-                                <div className="mt-2 md:mt-0 md:absolute md:inset-0 md:bg-white/95 opacity-100 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center gap-1 md:gap-2 rounded-xl transition-all">
+                                <div className="mt-2 md:mt-0 md:absolute md:inset-0 md:bg-white/95 opacity-100 md:opacity-0 md:group-hover:opacity-100 flex flex-row items-center justify-center gap-2 rounded-xl transition-all w-full px-1">
                                   <Button 
-                                    size="icon" 
+                                    size="sm" 
                                     variant="outline" 
-                                    className="h-8 w-8 text-blue-600 hover:bg-blue-50 md:border-none"
+                                    className="h-8 flex-1 md:flex-none md:w-8 md:px-0 text-blue-600 hover:bg-blue-50 md:border-none border-blue-200"
                                     onClick={() => {
                                       setActiveTab('bookings');
                                       setSearchQuery(bookings.find(b => b.id === court.bookingId)?.customerName || '');
                                     }}
                                     title="Detail/Edit"
                                   >
-                                    <Edit className="w-4 h-4" />
+                                    <Edit className="w-4 h-4 md:mr-0 mr-1" /> <span className="md:hidden text-xs">Edit</span>
                                   </Button>
-                                  <Button 
-                                    size="icon" 
-                                    variant="outline" 
-                                    className="h-8 w-8 text-red-600 hover:bg-red-50 md:border-none"
-                                    onClick={() => deleteBooking(court.bookingId!)}
-                                    title="Hapus"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                </div>
-                              ) : court.status === 'available' && (
-                                <div className="mt-2 md:mt-0 md:absolute md:inset-0 md:bg-white/95 opacity-100 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center gap-1 md:gap-2 rounded-xl transition-all">
                                   <Button 
                                     size="sm" 
                                     variant="outline" 
-                                    className="h-8 text-green-600 hover:bg-green-50 md:border-none w-full md:w-auto"
+                                    className="h-8 flex-1 md:flex-none md:w-8 md:px-0 text-red-600 hover:bg-red-50 md:border-none border-red-200"
+                                    onClick={() => deleteBooking(court.bookingId!)}
+                                    title="Hapus"
+                                  >
+                                    <Trash2 className="w-4 h-4 md:mr-0 mr-1" /> <span className="md:hidden text-xs">Hapus</span>
+                                  </Button>
+                                </div>
+                              ) : court.status === 'available' && (
+                                <div className="mt-2 md:mt-0 md:absolute md:inset-0 md:bg-white/95 opacity-100 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center rounded-xl transition-all w-full">
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="h-8 text-green-600 hover:bg-green-50 md:border-none border-green-200 w-full md:w-auto mx-1 md:mx-0"
                                     onClick={() => {
                                       setActiveTab('bookings');
                                       // Optional: set search query to empty or show create form
                                     }}
                                     title="Buat Booking"
                                   >
-                                    <Plus className="w-4 h-4 mr-1 md:mr-0" /> <span className="md:hidden">Booking</span>
+                                    <Plus className="w-4 h-4 mr-1 md:mr-0" /> <span className="md:hidden text-xs">Booking</span>
                                   </Button>
                                 </div>
                               )}
