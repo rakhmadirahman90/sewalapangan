@@ -1105,9 +1105,46 @@ export default function AdminPanel() {
                         key={slot.time} 
                         className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
                       >
-                        <div className="w-auto sm:w-28 font-bold text-gray-900 flex items-center gap-2 pb-2 sm:pb-0 border-b border-gray-100 sm:border-b-0 sm:border-r border-dashed">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="whitespace-nowrap">{slot.time}</span>
+                        <div className="w-auto sm:w-28 font-bold text-gray-900 flex flex-col items-start gap-2 pb-2 sm:pb-0 border-b border-gray-100 sm:border-b-0 sm:border-r border-dashed">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-gray-400" />
+                            <span className="whitespace-nowrap">{slot.time}</span>
+                          </div>
+                          
+                          {/* Quick Actions for Time Slot directly in Schedule View */}
+                          <div className="flex gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 px-2 text-orange-500 hover:text-orange-700 hover:bg-orange-50"
+                              onClick={() => {
+                                const activeSlot = activeSlots.find(s => `${s.startTime} - ${s.endTime}` === slot.time);
+                                if (activeSlot) {
+                                  setActiveTab('slots');
+                                  setEditingSlot(activeSlot);
+                                  setSlotForm({ startTime: activeSlot.startTime, endTime: activeSlot.endTime, isActive: activeSlot.isActive });
+                                  setShowSlotForm(true);
+                                }
+                              }}
+                              title="Edit Jam Operasional"
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 px-2 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => {
+                                const activeSlot = activeSlots.find(s => `${s.startTime} - ${s.endTime}` === slot.time);
+                                if (activeSlot) {
+                                  deleteSlot(activeSlot.id);
+                                }
+                              }}
+                              title="Hapus Jam Operasional"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
                         </div>
                         <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                           {slot.courts.map(court => (
@@ -1729,11 +1766,11 @@ export default function AdminPanel() {
                       <p className="text-sm font-black text-gray-800">{slot.startTime}</p>
                       <p className="text-[10px] text-gray-400 font-medium">{slot.endTime}</p>
                       
-                      <div className="mt-4 md:mt-0 md:absolute md:inset-0 md:bg-white/95 opacity-100 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center gap-2 transition-all">
+                      <div className="mt-4 flex items-center justify-center gap-2 transition-all">
                         <Button 
                           variant="outline" 
                           size="icon" 
-                          className="h-8 w-8 rounded-full hover:bg-orange-50 hover:text-orange-600 md:border-none" 
+                          className="h-8 w-8 rounded-full hover:bg-orange-50 hover:text-orange-600" 
                           onClick={() => {
                             setEditingSlot(slot);
                             setSlotForm({ startTime: slot.startTime, endTime: slot.endTime, isActive: slot.isActive });
@@ -1746,7 +1783,7 @@ export default function AdminPanel() {
                         <Button 
                           variant="outline" 
                           size="icon" 
-                          className="h-8 w-8 rounded-full hover:bg-blue-50 hover:text-blue-600 md:border-none" 
+                          className="h-8 w-8 rounded-full hover:bg-blue-50 hover:text-blue-600" 
                           onClick={() => toggleSlotStatus(slot)}
                           title={slot.isActive ? "Matikan Slot" : "Aktifkan Slot"}
                         >
@@ -1755,7 +1792,7 @@ export default function AdminPanel() {
                         <Button 
                           variant="outline" 
                           size="icon" 
-                          className="h-8 w-8 rounded-full hover:bg-red-50 hover:text-red-600 md:border-none"
+                          className="h-8 w-8 rounded-full hover:bg-red-50 hover:text-red-600"
                           onClick={() => deleteSlot(slot.id)}
                           title="Hapus Permanen"
                         >
