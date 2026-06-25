@@ -1096,20 +1096,20 @@ export default function AdminPanel() {
                   </div>
 
                   {/* Schedule Grid */}
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {scheduleData.map((slot, i) => (
                       <motion.div 
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: i * 0.05 }}
                         key={slot.time} 
-                        className="flex gap-4 items-center bg-white p-3 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+                        className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
                       >
-                        <div className="w-20 font-bold text-gray-900 flex items-center gap-1">
+                        <div className="w-auto sm:w-28 font-bold text-gray-900 flex items-center gap-2 pb-2 sm:pb-0 border-b border-gray-100 sm:border-b-0 sm:border-r border-dashed">
                           <Clock className="w-4 h-4 text-gray-400" />
-                          {slot.time}
+                          <span className="whitespace-nowrap">{slot.time}</span>
                         </div>
-                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                           {slot.courts.map(court => (
                             <div 
                               key={court.id}
@@ -1125,43 +1125,47 @@ export default function AdminPanel() {
                               <span className={`text-[10px] uppercase tracking-wider font-bold ${court.status === 'available' ? 'text-green-600' : 'text-gray-400'}`}>
                                 {court.status === 'available' ? 'Tersedia' : 'Penuh'}
                               </span>
-                              {court.status === 'booked' && court.bookingId ? (
-                                <div className="mt-2 md:mt-0 md:absolute md:inset-0 md:bg-white/95 opacity-100 md:opacity-0 md:group-hover:opacity-100 flex flex-row items-center justify-center gap-2 rounded-xl transition-all w-full px-1">
+                              {court.status === 'booked' ? (
+                                <div className="mt-2 flex flex-row items-center justify-center gap-2 w-full">
                                   <Button 
                                     size="sm" 
                                     variant="outline" 
-                                    className="h-8 flex-1 md:flex-none md:w-8 md:px-0 text-blue-600 hover:bg-blue-50 md:border-none border-blue-200"
+                                    disabled={!court.bookingId}
+                                    className="h-8 flex-1 text-blue-600 hover:bg-blue-50 border-blue-200 px-0"
                                     onClick={() => {
-                                      setActiveTab('bookings');
-                                      setSearchQuery(bookings.find(b => b.id === court.bookingId)?.customerName || '');
+                                      if (court.bookingId) {
+                                        setActiveTab('bookings');
+                                        setSearchQuery(bookings.find(b => b.id === court.bookingId)?.customerName || '');
+                                      }
                                     }}
                                     title="Detail/Edit"
                                   >
-                                    <Edit className="w-4 h-4 md:mr-0 mr-1" /> <span className="md:hidden text-xs">Edit</span>
+                                    <Edit className="w-3.5 h-3.5 mr-1" /> <span className="text-[10px] font-bold uppercase">Edit</span>
                                   </Button>
                                   <Button 
                                     size="sm" 
-                                    variant="outline" 
-                                    className="h-8 flex-1 md:flex-none md:w-8 md:px-0 text-red-600 hover:bg-red-50 md:border-none border-red-200"
-                                    onClick={() => deleteBooking(court.bookingId!)}
+                                    variant="outline"
+                                    disabled={!court.bookingId}
+                                    className="h-8 flex-1 text-red-600 hover:bg-red-50 border-red-200 px-0"
+                                    onClick={() => court.bookingId && deleteBooking(court.bookingId)}
                                     title="Hapus"
                                   >
-                                    <Trash2 className="w-4 h-4 md:mr-0 mr-1" /> <span className="md:hidden text-xs">Hapus</span>
+                                    <Trash2 className="w-3.5 h-3.5 mr-1" /> <span className="text-[10px] font-bold uppercase">Hapus</span>
                                   </Button>
                                 </div>
                               ) : court.status === 'available' && (
-                                <div className="mt-2 md:mt-0 md:absolute md:inset-0 md:bg-white/95 opacity-100 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center rounded-xl transition-all w-full">
+                                <div className="mt-2 flex items-center justify-center w-full">
                                   <Button 
                                     size="sm" 
                                     variant="outline" 
-                                    className="h-8 text-green-600 hover:bg-green-50 md:border-none border-green-200 w-full md:w-auto mx-1 md:mx-0"
+                                    className="h-8 text-green-600 hover:bg-green-50 border-green-200 w-full"
                                     onClick={() => {
                                       setActiveTab('bookings');
                                       // Optional: set search query to empty or show create form
                                     }}
                                     title="Buat Booking"
                                   >
-                                    <Plus className="w-4 h-4 mr-1 md:mr-0" /> <span className="md:hidden text-xs">Booking</span>
+                                    <Plus className="w-4 h-4 mr-1" /> <span className="text-xs font-bold uppercase">Booking</span>
                                   </Button>
                                 </div>
                               )}
@@ -1986,8 +1990,8 @@ export default function AdminPanel() {
                   {heroImages.length === 0 && (
                     <div className="col-span-full py-20 flex flex-col items-center justify-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 text-gray-400">
                       <ImageIcon className="w-12 h-12 mb-4 opacity-20" />
-                      <p className="font-bold">Belum ada gambar custom</p>
-                      <p className="text-xs">Slider akan menampilkan gambar default.</p>
+                      <p className="font-bold">Belum ada gambar hero</p>
+                      <p className="text-xs">Slider akan menampilkan latar belakang gradien.</p>
                     </div>
                   )}
                 </div>

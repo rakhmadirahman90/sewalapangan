@@ -3,33 +3,25 @@ import { motion, AnimatePresence } from 'motion/react';
 import { db } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 
-const DEFAULT_IMAGES = [
-  "https://images.unsplash.com/photo-1541414779316-956a5084c0d4?q=80&w=2000", // Badminton court view
-  "https://images.unsplash.com/photo-1595438662241-11993433626d?q=80&w=2000", // Racket and shuttlecock
-  "https://images.unsplash.com/photo-1613918431208-673b08070ad2?q=80&w=2000"  // Macro shuttlecock
-];
-
 export default function HeroSlider() {
   const [index, setIndex] = useState(0);
-  const [images, setImages] = useState<string[]>(DEFAULT_IMAGES);
+  const [images, setImages] = useState<string[]>([]);
 
   useEffect(() => {
     // Use onSnapshot for real-time updates from Firestore
     const unsub = onSnapshot(doc(db, 'settings', 'hero'), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.images && Array.isArray(data.images)) {
+        if (Array.isArray(data.images)) {
           const validImages = data.images.filter(url => url && typeof url === 'string' && url.length > 5);
-          if (validImages.length > 0) {
-            setImages(validImages);
-            return;
-          }
+          setImages(validImages);
+          return;
         }
       }
-      setImages(DEFAULT_IMAGES);
+      setImages([]);
     }, (err) => {
       console.error("Error listening to hero settings:", err);
-      setImages(DEFAULT_IMAGES);
+      setImages([]);
     });
 
     return () => unsub();
@@ -68,25 +60,27 @@ export default function HeroSlider() {
           className="absolute inset-0"
         >
           {/* Main Background Image with Ken Burns Zoom */}
-          <motion.img
-            src={images[index]}
-            alt="Hero background"
-            className="w-full h-full object-cover object-center"
-            animate={{ 
-              scale: [1, 1.1],
-              x: [0, -10],
-            }}
-            transition={{ 
-              duration: 10, 
-              repeat: Infinity, 
-              repeatType: "reverse", 
-              ease: "linear" 
-            }}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = DEFAULT_IMAGES[0];
-            }}
-          />
+          {images.length > 0 && (
+            <motion.img
+              src={images[index]}
+              alt="Hero background"
+              className="w-full h-full object-cover object-center"
+              animate={{ 
+                scale: [1, 1.1],
+                x: [0, -10],
+              }}
+              transition={{ 
+                duration: 10, 
+                repeat: Infinity, 
+                repeatType: "reverse", 
+                ease: "linear" 
+              }}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+              }}
+            />
+          )}
 
           {/* Sophisticated Dark Overlay System */}
           {/* 1. Base Darkening for Contrast */}
