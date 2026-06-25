@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, getDocs, doc, updateDoc, deleteDoc, addDoc, where, orderBy, setDoc, getDoc, limit, serverTimestamp } from 'firebase/firestore';
+import { collection, query, getDocs, doc, updateDoc, deleteDoc, addDoc, where, orderBy, setDoc, getDoc, limit, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { db, auth, signInWithGoogle } from '@/src/lib/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Court, TimeSlot, Booking, BookingStatus, ContactMessage } from '@/src/types';
@@ -40,9 +40,12 @@ import {
   Receipt,
   Menu,
   MessageSquare,
-  Image as ImageIcon
+  ImageIcon,
+  CalendarDays,
+  Edit
 } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, isWithinInterval, subDays, startOfDay, endOfDay } from 'date-fns';
+import { format, startOfMonth, endOfMonth, isWithinInterval, subDays, startOfDay, endOfDay, addDays } from 'date-fns';
+import { id } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { 
@@ -64,7 +67,9 @@ export default function AdminPanel() {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'courts' | 'slots' | 'contacts' | 'setup' | 'landing'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'schedule' | 'bookings' | 'courts' | 'slots' | 'contacts' | 'setup' | 'landing'>('dashboard');
+  const [scheduleSelectedDate, setScheduleSelectedDate] = useState(new Date());
+  const [editingSlot, setEditingSlot] = useState<TimeSlot | null>(null);
   const [isSavingHero, setIsSavingHero] = useState(false);
   const [heroImages, setHeroImages] = useState<string[]>([]);
   const [heroTitle, setHeroTitle] = useState('Main Badminton Lebih Mudah & Cepat');
@@ -91,7 +96,15 @@ export default function AdminPanel() {
   const [slotForm, setSlotForm] = useState({ startTime: '', endTime: '', isActive: true });
 
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
-  const [bookingEditForm, setBookingEditForm] = useState({ customerName: '', customerWhatsApp: '' });
+  const [bookingEditForm, setBookingEditForm] = useState({ 
+    customerName: '', 
+    customerWhatsApp: '',
+    date: '',
+    courtId: '',
+    startTime: '',
+    endTime: '',
+    totalPrice: 0
+  });
 
   const [isSeeding, setIsSeeding] = useState(false);
 
@@ -104,7 +117,15 @@ export default function AdminPanel() {
           const adminRef = doc(db, 'admins', u.uid);
           const adminDoc = await getDoc(adminRef);
           
-          if (adminDoc.exists()) {
+          if (adminDoc.exists() || u.email === 'rakhmadi.rahman90@gmail.com') {
+            if (!adminDoc.exists()) {
+              // Ensure the hardcoded admin is added to the collection
+              try {
+                await setDoc(doc(db, 'admins', u.uid), { uid: u.uid, email: u.email });
+              } catch (e) {
+                console.error("Failed to add hardcoded admin to collection", e);
+              }
+            }
             setIsAdmin(true);
             fetchData();
           } else {
@@ -119,38 +140,61 @@ export default function AdminPanel() {
           }
         } catch (error) {
           console.error("Admin check error:", error);
+          setIsAdmin(false);
         }
+      } else {
+        setIsAdmin(false);
       }
       setLoading(false);
     });
     return unsubscribe;
   }, []);
 
+  useEffect(() => {
+    if (!isAdmin) return;
+    
+    // Subscribe Bookings
+    const unsubBookings = onSnapshot(query(collection(db, 'bookings'), orderBy('createdAt', 'desc')), (snap) => {
+      setBookings(snap.docs.map(d => ({ id: d.id, ...d.data() } as Booking)));
+    }, (error) => console.error("Bookings snapshot error:", error));
+
+    // Subscribe Courts
+    const unsubCourts = onSnapshot(collection(db, 'courts'), (snap) => {
+      setCourts(snap.docs.map(d => ({ id: d.id, ...d.data() } as Court)));
+    }, (error) => console.error("Courts snapshot error:", error));
+
+    // Subscribe Slots
+    const unsubSlots = onSnapshot(collection(db, 'timeSlots'), (snap) => {
+      setSlots(snap.docs.map(d => ({ id: d.id, ...d.data() } as TimeSlot)));
+    }, (error) => console.error("Slots snapshot error:", error));
+
+    // Subscribe Messages
+    const unsubMessages = onSnapshot(query(collection(db, 'contacts'), orderBy('createdAt', 'desc')), (snap) => {
+      setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() } as ContactMessage)));
+    }, (error) => console.error("Contacts snapshot error:", error));
+
+    // Subscribe Hero Settings
+    const unsubHero = onSnapshot(doc(db, 'settings', 'hero'), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setHeroImages(data.images || []);
+        if (data.heroTitle) setHeroTitle(data.heroTitle);
+        if (data.heroSubtitle) setHeroSubtitle(data.heroSubtitle);
+      }
+    }, (error) => console.error("Hero snapshot error:", error));
+
+    return () => {
+      unsubBookings();
+      unsubCourts();
+      unsubSlots();
+      unsubMessages();
+      unsubHero();
+    };
+  }, [isAdmin]);
+
   const fetchData = async () => {
-    // Fetch Bookings
-    const bSnap = await getDocs(query(collection(db, 'bookings'), orderBy('createdAt', 'desc')));
-    setBookings(bSnap.docs.map(d => ({ id: d.id, ...d.data() } as Booking)));
-    
-    // Fetch Courts
-    const cSnap = await getDocs(collection(db, 'courts'));
-    setCourts(cSnap.docs.map(d => ({ id: d.id, ...d.data() } as Court)));
-    
-    // Fetch Slots
-    const sSnap = await getDocs(collection(db, 'timeSlots'));
-    setSlots(sSnap.docs.map(d => ({ id: d.id, ...d.data() } as TimeSlot)));
-
-    // Fetch Messages
-    const mSnap = await getDocs(query(collection(db, 'contacts'), orderBy('createdAt', 'desc')));
-    setMessages(mSnap.docs.map(d => ({ id: d.id, ...d.data() } as ContactMessage)));
-
-    // Fetch Hero Images & Settings
-    const hDoc = await getDoc(doc(db, 'settings', 'hero'));
-    if (hDoc.exists()) {
-      const data = hDoc.data();
-      setHeroImages(data.images || []);
-      if (data.heroTitle) setHeroTitle(data.heroTitle);
-      if (data.heroSubtitle) setHeroSubtitle(data.heroSubtitle);
-    }
+    // Left empty since we are now using onSnapshot subscriptions above.
+    // Kept here so we don't have to remove all calls to fetchData().
   };
 
   const handleSaveHeroSettings = async () => {
@@ -241,11 +285,19 @@ export default function AdminPanel() {
       return;
     }
     try {
-      await addDoc(collection(db, 'timeSlots'), slotForm);
-      toast.success("Slot jam baru berhasil ditambahkan");
+      if (editingSlot) {
+        await updateDoc(doc(db, 'timeSlots', editingSlot.id), {
+          startTime: slotForm.startTime,
+          endTime: slotForm.endTime
+        });
+        toast.success("Slot jam berhasil diupdate");
+      } else {
+        await addDoc(collection(db, 'timeSlots'), slotForm);
+        toast.success("Slot jam baru berhasil ditambahkan");
+      }
       setShowSlotForm(false);
+      setEditingSlot(null);
       setSlotForm({ startTime: '', endTime: '', isActive: true });
-      fetchData();
     } catch (e) {
       console.error(e);
       toast.error("Gagal menyimpan slot jam");
@@ -297,15 +349,29 @@ export default function AdminPanel() {
   const handleUpdateBooking = async () => {
     if (!editingBooking) return;
     try {
+      const courtName = courts.find(c => c.id === bookingEditForm.courtId)?.name || editingBooking.courtName;
+      
       await updateDoc(doc(db, 'bookings', editingBooking.id), {
         customerName: bookingEditForm.customerName,
         customerWhatsApp: bookingEditForm.customerWhatsApp,
+        date: bookingEditForm.date,
+        courtId: bookingEditForm.courtId,
+        courtName: courtName,
+        startTime: bookingEditForm.startTime,
+        endTime: bookingEditForm.endTime,
+        totalPrice: Number(bookingEditForm.totalPrice) || 0,
         updatedAt: serverTimestamp()
       });
       setBookings(prev => prev.map(b => b.id === editingBooking.id ? { 
         ...b, 
         customerName: bookingEditForm.customerName, 
-        customerWhatsApp: bookingEditForm.customerWhatsApp 
+        customerWhatsApp: bookingEditForm.customerWhatsApp,
+        date: bookingEditForm.date,
+        courtId: bookingEditForm.courtId,
+        courtName: courtName,
+        startTime: bookingEditForm.startTime,
+        endTime: bookingEditForm.endTime,
+        totalPrice: Number(bookingEditForm.totalPrice) || 0
       } : b));
       toast.success("Data booking berhasil diperbarui");
       setEditingBooking(null);
@@ -664,6 +730,15 @@ export default function AdminPanel() {
           <LayoutDashboard className="w-4 h-4" /> Dashboard
         </button>
         <button 
+          onClick={() => setActiveTab('schedule')}
+          className={cn(
+            "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+            activeTab === 'schedule' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
+          )}
+        >
+          <CalendarDays className="w-4 h-4" /> Jadwal Lapangan
+        </button>
+        <button 
           onClick={() => setActiveTab('bookings')}
           className={cn(
             "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
@@ -990,6 +1065,154 @@ export default function AdminPanel() {
           </div>
         )}
 
+        {activeTab === 'schedule' && (() => {
+          const scheduleDates = Array.from({ length: 7 }).map((_, i) => addDays(new Date(), i));
+          const activeCourts = courts.filter(c => c.isActive);
+          const activeSlots = slots.filter(s => s.isActive).sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+          const scheduleData = activeSlots.map(slot => {
+            return {
+              time: `${slot.startTime} - ${slot.endTime}`,
+              courts: activeCourts.map(court => {
+                const isSlotBooked = bookings.some(b => 
+                  b.courtId === court.id && 
+                  b.date === format(scheduleSelectedDate, 'yyyy-MM-dd') &&
+                  ['pending', 'verified'].includes(b.status) &&
+                  slot.startTime >= b.startTime && 
+                  slot.startTime < b.endTime
+                );
+
+                return {
+                  id: court.id,
+                  name: court.name,
+                  status: isSlotBooked ? 'booked' : 'available',
+                  bookingId: isSlotBooked ? bookings.find(b => 
+                    b.courtId === court.id && 
+                    b.date === format(scheduleSelectedDate, 'yyyy-MM-dd') &&
+                    ['pending', 'verified'].includes(b.status) &&
+                    slot.startTime >= b.startTime && 
+                    slot.startTime < b.endTime
+                  )?.id : undefined
+                };
+              })
+            };
+          });
+
+          return (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                <div>
+                  <h2 className="text-3xl font-extrabold tracking-tight">Jadwal Lapangan</h2>
+                  <p className="text-gray-500">Lihat ketersediaan lapangan berdasarkan tanggal.</p>
+                </div>
+              </div>
+
+              <Card className="border-none shadow-md overflow-hidden bg-white">
+                <div className="p-6 bg-gray-50/50">
+                  {/* Date Selector */}
+                  <div className="flex gap-3 overflow-x-auto pb-6 scrollbar-hide">
+                    {scheduleDates.map((date, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setScheduleSelectedDate(date)}
+                        className={`flex flex-col items-center min-w-[80px] p-3 rounded-2xl border transition-all ${
+                          scheduleSelectedDate.toDateString() === date.toDateString()
+                            ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/30'
+                            : 'bg-white border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50'
+                        }`}
+                      >
+                        <span className="text-xs font-medium mb-1 uppercase tracking-wider opacity-80">
+                          {format(date, 'EEE', { locale: id })}
+                        </span>
+                        <span className="text-2xl font-bold">
+                          {format(date, 'dd')}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Legend */}
+                  <div className="flex gap-6 mb-6 px-2 text-sm font-medium text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-md bg-green-50 border border-green-200"></div>
+                      Tersedia
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 rounded-md bg-gray-100 border border-gray-200"></div>
+                      Dibooking
+                    </div>
+                  </div>
+
+                  {/* Schedule Grid */}
+                  <div className="space-y-3">
+                    {scheduleData.map((slot, i) => (
+                      <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        key={slot.time} 
+                        className="flex gap-4 items-center bg-white p-3 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="w-20 font-bold text-gray-900 flex items-center gap-1">
+                          <Clock className="w-4 h-4 text-gray-400" />
+                          {slot.time}
+                        </div>
+                        <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {slot.courts.map(court => (
+                            <div 
+                              key={court.id}
+                              className={`group relative p-3 rounded-xl border flex flex-col justify-center items-center text-center gap-1 transition-all ${
+                                court.status === 'available'
+                                  ? 'bg-green-50/50 border-green-200 hover:bg-green-50'
+                                  : 'bg-gray-50 border-gray-200'
+                              }`}
+                            >
+                              <span className={`text-sm font-semibold ${court.status === 'available' ? 'text-green-800' : 'text-gray-500'}`}>
+                                {court.name}
+                              </span>
+                              <span className={`text-[10px] uppercase tracking-wider font-bold ${court.status === 'available' ? 'text-green-600' : 'text-gray-400'}`}>
+                                {court.status === 'available' ? 'Tersedia' : 'Penuh'}
+                              </span>
+                              {court.status === 'booked' && court.bookingId && (
+                                <div className="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 rounded-xl transition-all">
+                                  <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    className="h-8 w-8 text-blue-600 hover:bg-blue-50"
+                                    onClick={() => {
+                                      setActiveTab('bookings');
+                                      // Optional: highlight or search the specific booking
+                                    }}
+                                    title="Detail/Edit"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                  </Button>
+                                  <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    className="h-8 w-8 text-red-600 hover:bg-red-50"
+                                    onClick={() => deleteBooking(court.bookingId!)}
+                                    title="Hapus"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    ))}
+                    {scheduleData.length === 0 && (
+                      <div className="text-center py-10 text-gray-500">Belum ada slot waktu aktif.</div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+            </div>
+          );
+        })()}
+
         {activeTab === 'bookings' && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
@@ -1051,10 +1274,16 @@ export default function AdminPanel() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
                   >
-                    <Card className="overflow-hidden border-none shadow-sm hover:shadow-md transition-all group">
+                    <Card className={cn(
+                      "overflow-hidden shadow-sm hover:shadow-md transition-all duration-500 group border-l-4",
+                      b.status === 'verified' ? "border-l-green-500 border-y-transparent border-r-transparent bg-gradient-to-r from-green-50/30 to-transparent" :
+                      b.status === 'pending' ? "border-l-yellow-400 border-y-transparent border-r-transparent bg-gradient-to-r from-yellow-50/30 to-transparent" :
+                      "border-l-red-500 border-y-transparent border-r-transparent bg-gradient-to-r from-red-50/30 to-transparent"
+                    )}>
                       <div className="flex flex-col lg:flex-row">
-                        <div className="w-full lg:w-56 bg-gray-50 p-6 flex flex-col justify-center items-center border-b lg:border-b-0 lg:border-r relative">
+                        <div className="w-full lg:w-56 bg-white/50 p-6 flex flex-col justify-center items-center border-b lg:border-b-0 lg:border-r border-gray-100 relative transition-colors duration-500">
                           {b.paymentProofUrl ? (
                             <div className="relative group/img cursor-pointer" onClick={() => window.open(b.paymentProofUrl, '_blank')}>
                               <img src={b.paymentProofUrl} alt="Bukti" className="w-32 h-32 object-cover rounded-xl border-2 border-white shadow-sm transition-transform group-hover/img:scale-105" />
@@ -1079,7 +1308,7 @@ export default function AdminPanel() {
                           </div>
                         </div>
 
-                        <div className="flex-1 p-6 space-y-6 bg-white">
+                        <div className="flex-1 p-6 space-y-6 bg-transparent transition-colors duration-500">
                           <div className="flex flex-wrap justify-between items-start gap-4">
                             <div>
                               <div className="flex items-center gap-2 mb-2">
@@ -1186,7 +1415,15 @@ export default function AdminPanel() {
                                 className="h-10 w-10 rounded-full hover:bg-blue-50 text-gray-400 hover:text-blue-600"
                                 onClick={() => {
                                   setEditingBooking(b);
-                                  setBookingEditForm({ customerName: b.customerName, customerWhatsApp: b.customerWhatsApp });
+                                  setBookingEditForm({ 
+                                    customerName: b.customerName, 
+                                    customerWhatsApp: b.customerWhatsApp,
+                                    date: b.date,
+                                    courtId: b.courtId,
+                                    startTime: b.startTime,
+                                    endTime: b.endTime,
+                                    totalPrice: b.totalPrice
+                                  });
                                 }}
                               >
                                 <Settings className="w-4 h-4" />
@@ -1227,6 +1464,108 @@ export default function AdminPanel() {
                 </div>
               )}
             </div>
+
+            {/* Edit Booking Modal */}
+            <AnimatePresence>
+              {editingBooking && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]"
+                  >
+                    <div className="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 sticky top-0 z-10">
+                      <h3 className="text-lg sm:text-xl font-bold">Edit Data Booking</h3>
+                      <Button variant="ghost" size="icon" onClick={() => setEditingBooking(null)} className="h-8 w-8 rounded-full">
+                        <X className="w-5 h-5" />
+                      </Button>
+                    </div>
+                    
+                    <div className="p-4 sm:p-6 space-y-4 overflow-y-auto">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Nama Pemesan</label>
+                        <Input 
+                          value={bookingEditForm.customerName}
+                          onChange={(e) => setBookingEditForm({...bookingEditForm, customerName: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">No WhatsApp</label>
+                        <Input 
+                          value={bookingEditForm.customerWhatsApp}
+                          onChange={(e) => setBookingEditForm({...bookingEditForm, customerWhatsApp: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Tanggal</label>
+                        <Input 
+                          type="date"
+                          value={bookingEditForm.date}
+                          onChange={(e) => setBookingEditForm({...bookingEditForm, date: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Lapangan</label>
+                        <select 
+                          className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          value={bookingEditForm.courtId}
+                          onChange={(e) => setBookingEditForm({...bookingEditForm, courtId: e.target.value})}
+                        >
+                          {courts.map(c => (
+                            <option key={c.id} value={c.id}>{c.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Jam Mulai</label>
+                          <select 
+                            className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value={bookingEditForm.startTime}
+                            onChange={(e) => setBookingEditForm({...bookingEditForm, startTime: e.target.value})}
+                          >
+                            {slots.map(s => (
+                              <option key={`start-${s.id}`} value={s.startTime}>{s.startTime}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">Jam Selesai</label>
+                          <select 
+                            className="w-full h-10 px-3 rounded-md border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            value={bookingEditForm.endTime}
+                            onChange={(e) => setBookingEditForm({...bookingEditForm, endTime: e.target.value})}
+                          >
+                            {slots.map(s => (
+                              <option key={`end-${s.id}`} value={s.endTime}>{s.endTime}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Total Harga (Rp)</label>
+                        <Input 
+                          type="number"
+                          value={bookingEditForm.totalPrice}
+                          onChange={(e) => setBookingEditForm({...bookingEditForm, totalPrice: Number(e.target.value)})}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 sm:p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/50 mt-auto sticky bottom-0 z-10">
+                      <Button variant="outline" onClick={() => setEditingBooking(null)}>
+                        Batal
+                      </Button>
+                      <Button onClick={handleUpdateBooking} className="bg-blue-600 hover:bg-blue-700 text-white shadow-md">
+                        Simpan Perubahan
+                      </Button>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+
           </div>
         )}
 
@@ -1361,7 +1700,11 @@ export default function AdminPanel() {
           <div className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">Kelola Jam (Time Slots)</h2>
-              <Button size="sm" onClick={() => setShowSlotForm(true)}>
+              <Button size="sm" onClick={() => {
+                setEditingSlot(null);
+                setSlotForm({ startTime: '', endTime: '', isActive: true });
+                setShowSlotForm(true);
+              }}>
                 <Plus className="w-4 h-4 mr-2" /> Tambah Slot
               </Button>
             </div>
@@ -1369,7 +1712,7 @@ export default function AdminPanel() {
             {showSlotForm && (
               <Card className="border-blue-200 bg-blue-50/10">
                 <CardHeader>
-                  <CardTitle className="text-lg">Tambah Time Slot</CardTitle>
+                  <CardTitle className="text-lg">{editingSlot ? 'Edit Time Slot' : 'Tambah Time Slot'}</CardTitle>
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -1415,6 +1758,19 @@ export default function AdminPanel() {
                       <p className="text-[10px] text-gray-400 font-medium">{slot.endTime}</p>
                       
                       <div className="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-1 transition-all">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 rounded-full hover:bg-orange-50 hover:text-orange-600" 
+                          onClick={() => {
+                            setEditingSlot(slot);
+                            setSlotForm({ startTime: slot.startTime, endTime: slot.endTime, isActive: slot.isActive });
+                            setShowSlotForm(true);
+                          }}
+                          title="Edit Slot"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
                         <Button 
                           variant="ghost" 
                           size="icon" 

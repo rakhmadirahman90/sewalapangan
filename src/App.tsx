@@ -3,6 +3,7 @@ import BookingForm from './components/BookingForm';
 import AdminPanel from './components/AdminPanel';
 import ContactForm from './components/ContactForm';
 import HeroSlider from './components/HeroSlider';
+import ScheduleModal from './components/ScheduleModal';
 import { Button } from './components/ui/Button';
 import { 
   Trophy, 
@@ -20,8 +21,9 @@ import { cn } from './lib/utils';
 import { Toaster } from 'sonner';
 
 export default function App() {
-  const [view, setView] = useState<'guest' | 'admin' | 'contact'>('guest');
+  const [view, setView] = useState<'guest' | 'admin' | 'contact' | 'booking'>('guest');
   const [scrolled, setScrolled] = useState(false);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [heroTitle, setHeroTitle] = useState('Main Badminton Lebih Mudah & Cepat');
   const [heroSubtitle, setHeroSubtitle] = useState('Pilih lapangan, tentukan jam, bayar, dan langsung main. Sistem booking modern tanpa perlu registrasi akun.');
 
@@ -67,12 +69,12 @@ export default function App() {
             className="flex items-center gap-2 cursor-pointer group"
             onClick={() => setView('guest')}
           >
-            <div className="bg-blue-600 p-2 rounded-xl group-hover:rotate-12 transition-transform shadow-lg shadow-blue-200">
+            <div className="bg-blue-600 p-2 rounded-xl group-hover:rotate-12 transition-transform shadow-lg shadow-blue-500/50">
               <Trophy className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-black tracking-tighter text-gray-900 uppercase italic leading-none">NetHub</h1>
-              <p className="text-[10px] font-bold text-blue-600 tracking-widest uppercase">Badminton Court</p>
+              <h1 className={cn("text-xl font-black tracking-tighter uppercase italic leading-none transition-colors", scrolled || view !== 'guest' ? "text-gray-900" : "text-white")}>NetHub</h1>
+              <p className={cn("text-[10px] font-bold tracking-widest uppercase transition-colors", scrolled || view !== 'guest' ? "text-blue-600" : "text-blue-400")}>Badminton Court</p>
             </div>
           </div>
 
@@ -83,8 +85,8 @@ export default function App() {
                 size="sm" 
                 onClick={() => setView('admin')}
                 className={cn(
-                  "font-semibold px-2 md:px-4 transition-colors",
-                  scrolled ? "text-gray-500 hover:text-blue-600" : "text-gray-700 hover:text-blue-600"
+                  "font-semibold px-2 md:px-4 transition-colors hover:bg-white/10",
+                  scrolled ? "text-gray-500 hover:text-blue-600" : "text-gray-200 hover:text-white"
                 )}
               >
                 <LayoutDashboard className="w-4 h-4 md:mr-2" />
@@ -101,12 +103,12 @@ export default function App() {
                 <span className="hidden md:inline">Kembali</span>
               </Button>
             )}
-            <div className="h-6 w-[1px] bg-gray-200 mx-1 md:mx-2" />
+            <div className={cn("h-6 w-[1px] mx-1 md:mx-2 transition-colors", scrolled || view !== 'guest' ? "bg-gray-200" : "bg-white/20")} />
             <Button 
               size="sm" 
               className={cn(
                 "rounded-full px-4 text-xs md:text-sm shadow-lg transition-all active:scale-95",
-                view === 'contact' ? "bg-blue-600" : "bg-gray-900 hover:bg-gray-800"
+                view === 'contact' ? "bg-blue-600" : scrolled || view !== 'guest' ? "bg-gray-900 hover:bg-gray-800" : "bg-white text-gray-900 hover:bg-gray-100 shadow-white/20"
               )}
               onClick={() => setView('contact')}
             >
@@ -123,7 +125,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="relative min-h-[90vh] flex items-center justify-center pt-24 pb-20 px-4 overflow-hidden"
+            className="relative min-h-screen flex items-center justify-center pt-24 pb-20 px-4 overflow-hidden"
           >
             <HeroSlider />
             
@@ -132,19 +134,19 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-white/80 backdrop-blur-md border border-white/20 shadow-2xl shadow-blue-500/10 text-sm font-semibold text-blue-700"
+                className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl text-xs sm:text-sm font-semibold text-white"
               >
                 <div className="flex -space-x-2">
                   {[1,2,3].map(i => (
-                    <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center overflow-hidden">
-                      <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" />
+                    <div key={i} className="w-6 h-6 rounded-full border-2 border-transparent bg-blue-500 flex items-center justify-center overflow-hidden">
+                      <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" className="opacity-90" />
                     </div>
                   ))}
                 </div>
                 <span className="flex items-center gap-2">
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-300 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-400"></span>
                   </span>
                   Booking Langsung Tanpa Ribet
                 </span>
@@ -154,7 +156,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="text-6xl md:text-9xl font-display font-bold text-gray-950 tracking-tight leading-[0.9] max-w-5xl mx-auto"
+                className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display font-bold text-white tracking-tight leading-[0.9] max-w-5xl mx-auto drop-shadow-2xl"
               >
                 {heroTitle.split(' ').map((word, i) => (
                   <motion.span 
@@ -165,7 +167,7 @@ export default function App() {
                     transition={{ delay: 0.3 + (i * 0.1) }}
                   >
                     {word === 'Mudah' || word === '&' || word === 'Cepat' ? (
-                      <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
+                      <span className="text-transparent bg-clip-text bg-gradient-to-br from-blue-300 via-blue-400 to-indigo-200 drop-shadow-lg">
                         {word}
                       </span>
                     ) : word}
@@ -177,7 +179,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
-                className="max-w-3xl mx-auto text-gray-700 text-xl md:text-3xl font-medium leading-relaxed tracking-tight"
+                className="max-w-3xl mx-auto text-gray-200 text-lg sm:text-xl md:text-2xl font-medium leading-relaxed tracking-tight drop-shadow-md"
               >
                 {heroSubtitle}
               </motion.p>
@@ -186,20 +188,26 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.8 }}
-                className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6"
+                className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6 w-full sm:w-auto"
               >
                 <button 
-                  onClick={() => window.scrollTo({ top: 800, behavior: 'smooth' })}
-                  className="group relative px-10 py-5 rounded-2xl bg-gray-900 text-white font-bold text-xl overflow-hidden transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] active:scale-95"
+                  onClick={() => {
+                    setView('booking');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="w-full sm:w-auto group relative px-8 py-4 sm:px-10 sm:py-5 rounded-2xl bg-blue-600 text-white font-bold text-lg sm:text-xl overflow-hidden transition-all hover:shadow-[0_20px_50px_rgba(37,99,235,0.4)] active:scale-95 border border-blue-500"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                  <span className="relative z-10 flex items-center gap-2">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                  <span className="relative z-10 flex items-center justify-center gap-2">
                     Mulai Booking Sekarang
-                    <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </button>
                 
-                <button className="px-10 py-5 rounded-2xl bg-white/50 backdrop-blur-md border border-white/50 text-gray-900 font-bold text-xl hover:bg-white transition-all shadow-xl active:scale-95">
+                <button 
+                  onClick={() => setIsScheduleModalOpen(true)}
+                  className="w-full sm:w-auto px-8 py-4 sm:px-10 sm:py-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-lg sm:text-xl hover:bg-white/20 transition-all shadow-xl active:scale-95"
+                >
                   Lihat Jadwal
                 </button>
               </motion.div>
@@ -208,19 +216,40 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      <ScheduleModal 
+        isOpen={isScheduleModalOpen} 
+        onClose={() => setIsScheduleModalOpen(false)} 
+        onBookNow={() => {
+          setIsScheduleModalOpen(false);
+          setView('booking');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }} 
+      />
 
       {/* Main Content */}
       <main className="flex-1 px-4 pb-20 relative z-10">
         <div className="max-w-7xl mx-auto">
           <AnimatePresence mode="wait">
-            {view === 'guest' ? (
+            {view === 'booking' ? (
               <motion.div
-                key="guest-view"
+                key="booking-view"
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.02 }}
                 transition={{ duration: 0.3 }}
               >
+                <div className="pt-24 mb-6 text-center sm:text-left">
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => {
+                      setView('guest');
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="mb-4"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" /> Kembali ke Beranda
+                  </Button>
+                </div>
                 <BookingForm />
               </motion.div>
             ) : view === 'contact' ? (

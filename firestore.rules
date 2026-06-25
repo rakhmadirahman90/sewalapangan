@@ -8,7 +8,7 @@ service cloud.firestore {
     function isAdmin() {
       return isSignedIn() && (
         exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-        request.auth.token.email == 'rakhmadi.rahman90@gmail.com'
+        ('email' in request.auth.token && request.auth.token.email == 'rakhmadi.rahman90@gmail.com')
       );
     }
 
@@ -51,7 +51,7 @@ service cloud.firestore {
     // Admins
     match /admins/{adminId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin() || (isSignedIn() && !exists(/databases/$(database)/documents/admins));
+      allow write: if isAdmin();
     }
 
     // Test connection doc

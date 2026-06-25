@@ -88,18 +88,21 @@ export default function HeroSlider() {
             }}
           />
 
-          {/* Sophisticated Overlay System */}
-          {/* 1. Base Darkening */}
-          <div className="absolute inset-0 bg-black/30" />
+          {/* Sophisticated Dark Overlay System */}
+          {/* 1. Base Darkening for Contrast */}
+          <div className="absolute inset-0 bg-gray-950/40 mix-blend-multiply" />
           
-          {/* 2. Glassmorphism Light Gradient (Right to Left for Text Balance) */}
-          <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/40 to-transparent backdrop-blur-[1px]" />
+          {/* 2. Radial Vignette (Draws focus to center) */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-gray-900/40 to-gray-950/80" />
           
-          {/* 3. Bottom Gradient for Depth */}
-          <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-60" />
+          {/* 3. Bottom Gradient for smooth transition to next section */}
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-50 via-gray-900/20 to-transparent opacity-100" />
           
-          {/* 4. Subtle Texture/Noise (Optional but adds premium feel) */}
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+          {/* 4. Top Gradient to protect the header */}
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-950/60 via-transparent to-transparent opacity-70" />
+          
+          {/* 5. Subtle Texture/Noise (Adds premium feel) */}
+          <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
         </motion.div>
       </AnimatePresence>
       

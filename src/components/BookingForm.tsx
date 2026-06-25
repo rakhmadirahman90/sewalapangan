@@ -60,12 +60,17 @@ export default function BookingForm() {
     const q = query(
       collection(db, 'bookings'),
       where('courtId', '==', selectedCourt.id),
-      where('date', '==', dateStr),
-      where('status', 'in', ['pending', 'verified'])
+      where('date', '==', dateStr)
     );
-    const querySnapshot = await getDocs(q);
-    const booked = querySnapshot.docs.map(doc => doc.data().startTime);
-    setBookedSlots(booked);
+    try {
+      const querySnapshot = await getDocs(q);
+      const bookedData = querySnapshot.docs.map(doc => doc.data() as Booking);
+      const activeBookings = bookedData.filter(b => ['pending', 'verified'].includes(b.status));
+      const booked = activeBookings.map(b => b.startTime);
+      setBookedSlots(booked);
+    } catch (error) {
+      console.error("Error fetching booked slots:", error);
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
