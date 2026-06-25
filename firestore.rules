@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helpers
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    function incoming() {
+      return request.resource.data;
+    }
+    function existing() {
+      return resource.data;
+    }
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // Courts
+    match /courts/{courtId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Time Slots
+    match /timeSlots/{slotId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Bookings
+    match /bookings/{bookingId} {
+      allow read: if true; 
+      
+      allow create: if (
+        incoming().status == 'pending' &&
+        incoming().createdAt == request.time
+      );
+      
+      allow update, delete: if isSignedIn() && (
+        request.auth.uid != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Contacts
+    match /contacts/{contactId} {
+      allow create: if true;
+      allow read, write: if isAdmin();
+    }
+
+    // Admins
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == adminId;
+    }
+  }
+}

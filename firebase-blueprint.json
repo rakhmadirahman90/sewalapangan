@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "Court": {
+      "title": "Court",
+      "description": "A badminton court",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "pricePerHour": { "type": "number" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string" }
+      },
+      "required": ["id", "name", "pricePerHour"]
+    },
+    "TimeSlot": {
+      "title": "TimeSlot",
+      "description": "Available booking time slot",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["id", "startTime", "endTime", "isActive"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "A booking record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "bookingCode": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerWhatsApp": { "type": "string" },
+        "courtId": { "type": "string" },
+        "courtName": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "totalPrice": { "type": "number" },
+        "paymentProofUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "verified", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "bookingCode", "customerName", "customerWhatsApp", "courtId", "date", "startTime", "endTime", "totalPrice", "status", "createdAt", "updatedAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Administrator user",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    }
+  },
+  "firestore": {
+    "/courts/{courtId}": {
+      "schema": "Court",
+      "description": "Collection of badminton courts"
+    },
+    "/timeSlots/{slotId}": {
+      "schema": "TimeSlot",
+      "description": "Collection of time slots"
+    },
+    "/bookings/{bookingId}": {
+      "schema": "Booking",
+      "description": "Collection of bookings"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Collection of admin users"
+    }
+  }
+}
