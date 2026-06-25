@@ -85,12 +85,12 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
+    <div className="min-h-[100dvh] bg-gray-50 flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
       <Toaster position="top-center" richColors />
       {/* Header */}
       <header 
         className={cn(
-          "sticky top-0 z-50 transition-all duration-300 px-4 md:px-8",
+          "fixed top-0 w-full z-50 transition-all duration-300 px-4 md:px-8",
           scrolled ? "bg-white/80 backdrop-blur-md shadow-sm py-3" : "bg-transparent py-6"
         )}
       >
@@ -142,28 +142,28 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="relative min-h-screen flex items-center justify-center pt-24 pb-20 px-4 overflow-hidden"
+            className="relative flex-1 w-full flex items-center justify-center px-4 overflow-hidden pt-16 sm:pt-0"
           >
             <HeroSlider />
             
-            <div className="max-w-7xl mx-auto text-center space-y-10 relative z-10">
+            <div className="max-w-7xl mx-auto text-center space-y-6 sm:space-y-10 relative z-10">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl text-xs sm:text-sm font-semibold text-white"
+                className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl text-[10px] sm:text-sm font-semibold text-white"
               >
                 <div className="flex -space-x-2">
                   {[1,2,3].map(i => (
-                    <div key={i} className="w-6 h-6 rounded-full border-2 border-transparent bg-blue-500 flex items-center justify-center overflow-hidden">
+                    <div key={i} className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 border-transparent bg-blue-500 flex items-center justify-center overflow-hidden">
                       <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" className="opacity-90" />
                     </div>
                   ))}
                 </div>
-                <span className="flex items-center gap-2">
-                  <span className="relative flex h-2 w-2">
+                <span className="flex items-center gap-2 whitespace-nowrap">
+                  <span className="relative flex h-1.5 w-1.5 sm:h-2 sm:w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-300 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-400"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 sm:h-2 sm:w-2 bg-blue-400"></span>
                   </span>
                   Booking Langsung Tanpa Ribet
                 </span>
@@ -173,7 +173,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
-                className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display font-bold text-white tracking-tight leading-[0.9] max-w-5xl mx-auto drop-shadow-2xl"
+                className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-display font-bold text-white tracking-tight leading-[1] sm:leading-[0.9] max-w-5xl mx-auto drop-shadow-2xl"
               >
                 {heroTitle.split(' ').map((word, i) => (
                   <motion.span 
@@ -196,7 +196,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
-                className="max-w-3xl mx-auto text-gray-200 text-lg sm:text-xl md:text-2xl font-medium leading-relaxed tracking-tight drop-shadow-md"
+                className="max-w-3xl mx-auto text-gray-200 text-sm sm:text-xl md:text-2xl font-medium leading-relaxed tracking-tight drop-shadow-md px-4"
               >
                 {heroSubtitle}
               </motion.p>
@@ -205,25 +205,25 @@ export default function App() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, delay: 0.8 }}
-                className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6 w-full sm:w-auto"
+                className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 pt-4 sm:pt-6 w-full sm:w-auto px-6 sm:px-0"
               >
                 <button 
                   onClick={() => {
                     setView('booking');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="w-full sm:w-auto group relative px-8 py-4 sm:px-10 sm:py-5 rounded-2xl bg-blue-600 text-white font-bold text-lg sm:text-xl overflow-hidden transition-all hover:shadow-[0_20px_50px_rgba(37,99,235,0.4)] active:scale-95 border border-blue-500"
+                  className="w-full sm:w-auto group relative px-6 py-3.5 sm:px-10 sm:py-5 rounded-2xl bg-blue-600 text-white font-bold text-base sm:text-xl overflow-hidden transition-all hover:shadow-[0_20px_50px_rgba(37,99,235,0.4)] active:scale-95 border border-blue-500"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-indigo-600 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
                   <span className="relative z-10 flex items-center justify-center gap-2">
                     Mulai Booking Sekarang
-                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" />
+                    <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </button>
                 
                 <button 
                   onClick={() => setIsScheduleModalOpen(true)}
-                  className="w-full sm:w-auto px-8 py-4 sm:px-10 sm:py-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-lg sm:text-xl hover:bg-white/20 transition-all shadow-xl active:scale-95"
+                  className="w-full sm:w-auto px-6 py-3.5 sm:px-10 sm:py-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-base sm:text-xl hover:bg-white/20 transition-all shadow-xl active:scale-95"
                 >
                   Lihat Jadwal
                 </button>
@@ -244,7 +244,7 @@ export default function App() {
       />
 
       {/* Main Content */}
-      <main className="flex-1 px-4 pb-20 relative z-10">
+      <main className={cn("px-4 relative z-10", view === 'guest' ? "hidden" : "flex-1 pb-20")}>
         <div className="max-w-7xl mx-auto">
           <AnimatePresence mode="wait">
             {view === 'booking' ? (

@@ -719,11 +719,11 @@ export default function AdminPanel() {
   return (
     <div className="flex flex-col md:flex-row gap-6 min-h-[600px]">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 flex flex-row flex-wrap md:flex-col gap-2 pb-2 md:pb-0 sticky top-0 bg-white md:static z-10 -mx-4 px-4 md:mx-0 md:px-0 shrink-0 md:space-y-2">
+      <aside className="w-full md:w-64 flex flex-row md:flex-col overflow-x-auto gap-2 pb-3 md:pb-0 sticky top-0 bg-white md:static z-10 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide shrink-0 md:space-y-2 border-b border-gray-100 md:border-b-0 mb-4 md:mb-0">
         <button 
           onClick={() => setActiveTab('dashboard')}
           className={cn(
-            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
+            "shrink-0 flex items-center gap-2 md:gap-3 px-4 py-2 md:py-3 rounded-full md:rounded-lg text-sm font-medium transition-colors md:w-full whitespace-nowrap",
             activeTab === 'dashboard' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
@@ -732,7 +732,7 @@ export default function AdminPanel() {
         <button 
           onClick={() => setActiveTab('schedule')}
           className={cn(
-            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
+            "shrink-0 flex items-center gap-2 md:gap-3 px-4 py-2 md:py-3 rounded-full md:rounded-lg text-sm font-medium transition-colors md:w-full whitespace-nowrap",
             activeTab === 'schedule' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
@@ -741,7 +741,7 @@ export default function AdminPanel() {
         <button 
           onClick={() => setActiveTab('bookings')}
           className={cn(
-            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
+            "shrink-0 flex items-center gap-2 md:gap-3 px-4 py-2 md:py-3 rounded-full md:rounded-lg text-sm font-medium transition-colors md:w-full whitespace-nowrap",
             activeTab === 'bookings' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
@@ -750,7 +750,7 @@ export default function AdminPanel() {
         <button 
           onClick={() => setActiveTab('courts')}
           className={cn(
-            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
+            "shrink-0 flex items-center gap-2 md:gap-3 px-4 py-2 md:py-3 rounded-full md:rounded-lg text-sm font-medium transition-colors md:w-full whitespace-nowrap",
             activeTab === 'courts' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
@@ -759,7 +759,7 @@ export default function AdminPanel() {
         <button 
           onClick={() => setActiveTab('slots')}
           className={cn(
-            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
+            "shrink-0 flex items-center gap-2 md:gap-3 px-4 py-2 md:py-3 rounded-full md:rounded-lg text-sm font-medium transition-colors md:w-full whitespace-nowrap",
             activeTab === 'slots' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
@@ -768,11 +768,11 @@ export default function AdminPanel() {
         <button 
           onClick={() => setActiveTab('contacts')}
           className={cn(
-            "shrink-0 flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full gap-3",
+            "shrink-0 flex items-center justify-between px-4 py-2 md:py-3 rounded-full md:rounded-lg text-sm font-medium transition-colors md:w-full gap-2 md:gap-3 whitespace-nowrap",
             activeTab === 'contacts' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <MessageSquare className="w-4 h-4" /> <span className="hidden md:inline">Pesan Masuk</span><span className="md:hidden">Pesan</span>
           </div>
           {messages.filter(m => !m.isRead).length > 0 && (
@@ -784,7 +784,7 @@ export default function AdminPanel() {
         <button 
           onClick={() => setActiveTab('landing')}
           className={cn(
-            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
+            "shrink-0 flex items-center gap-2 md:gap-3 px-4 py-2 md:py-3 rounded-full md:rounded-lg text-sm font-medium transition-colors md:w-full whitespace-nowrap",
             activeTab === 'landing' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
@@ -793,17 +793,17 @@ export default function AdminPanel() {
         <button 
           onClick={() => setActiveTab('setup')}
           className={cn(
-            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
+            "shrink-0 flex items-center gap-2 md:gap-3 px-4 py-2 md:py-3 rounded-full md:rounded-lg text-sm font-medium transition-colors md:w-full whitespace-nowrap",
             activeTab === 'setup' ? "bg-orange-600 text-white" : "text-gray-600 hover:bg-orange-50 hover:text-orange-600"
           )}
         >
           <Settings className="w-4 h-4" /> <span className="hidden md:inline">Setup Sistem</span><span className="md:hidden">Setup</span>
         </button>
-        <div className="md:pt-8 md:border-t shrink-0 flex items-center md:block border-l md:border-l-0 pl-4 md:pl-0 ml-2 md:ml-0">
+        <div className="md:pt-8 md:border-t border-gray-100 shrink-0 flex items-center md:block border-l md:border-l-0 pl-2 md:pl-0 ml-1 md:ml-0">
           <p className="hidden md:block px-4 text-[10px] uppercase font-bold text-gray-400 mb-2">Akun</p>
           <button 
             onClick={() => auth.signOut()}
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 md:w-full"
+            className="flex items-center gap-2 md:gap-3 px-4 py-2 md:py-3 rounded-full md:rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 md:w-full whitespace-nowrap"
           >
             <LogOut className="w-4 h-4" /> <span className="hidden md:inline">Logout</span>
           </button>
