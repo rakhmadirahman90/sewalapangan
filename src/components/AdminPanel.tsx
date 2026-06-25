@@ -177,6 +177,10 @@ export default function AdminPanel() {
   };
 
   const updateBookingStatus = async (id: string, status: BookingStatus) => {
+    // Only open a window for approval/rejection to avoid redundant tabs for "Pending" restoration
+    const shouldNotify = status === 'verified' || status === 'rejected';
+    const win = shouldNotify ? window.open('about:blank', '_blank') : null;
+    
     try {
       await updateDoc(doc(db, 'bookings', id), { 
         status, 
@@ -194,13 +198,21 @@ export default function AdminPanel() {
       toast.success(`Booking ${statusText}`);
 
       // Auto-generate WA link if possible
-      if (booking && booking.customerWhatsApp) {
+      if (shouldNotify && booking && booking.customerWhatsApp && win) {
         const court = courts.find(c => c.id === booking.courtId);
         const msg = `Halo ${booking.customerName}, Booking ${booking.bookingCode} telah ${statusText}.\n\n${court?.name || 'Lapangan'} | ${booking.date}\n${booking.startTime}-${booking.endTime}\n\nTerima kasih!`;
-        const waUrl = `https://wa.me/${booking.customerWhatsApp.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`;
-        window.open(waUrl, '_blank');
+        
+        let phone = booking.customerWhatsApp.replace(/\D/g, '');
+        if (phone.startsWith('0')) {
+          phone = '62' + phone.substring(1);
+        }
+        
+        win.location.href = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+      } else if (win) {
+        win.close();
       }
     } catch (e) {
+      if (win) win.close();
       console.error('Update status error:', e);
       toast.error("Gagal memperbarui status booking: " + (e instanceof Error ? e.message : 'Izin ditolak'));
     }
@@ -335,7 +347,13 @@ export default function AdminPanel() {
     const court = courts.find(c => c.id === booking.courtId);
     const statusText = booking.status === 'verified' ? 'DISETUJUI' : booking.status === 'rejected' ? 'DITOLAK' : 'PENDING';
     const msg = `Halo ${booking.customerName}, Status Booking ${booking.bookingCode}: ${statusText}.\n\n${court?.name || booking.courtName} | ${booking.date}\n${booking.startTime}-${booking.endTime}\n\nTerima kasih!`;
-    const waUrl = `https://wa.me/${booking.customerWhatsApp.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`;
+    
+    let phone = booking.customerWhatsApp.replace(/\D/g, '');
+    if (phone.startsWith('0')) {
+      phone = '62' + phone.substring(1);
+    }
+    
+    const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
     window.open(waUrl, '_blank');
   };
 
