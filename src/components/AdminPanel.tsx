@@ -719,64 +719,64 @@ export default function AdminPanel() {
   return (
     <div className="flex flex-col md:flex-row gap-6 min-h-[600px]">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 space-y-2">
+      <aside className="w-full md:w-64 flex flex-row md:flex-col overflow-x-auto md:overflow-visible gap-2 pb-2 md:pb-0 sticky top-0 bg-white md:static z-10 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide shrink-0 md:space-y-2">
         <button 
           onClick={() => setActiveTab('dashboard')}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
             activeTab === 'dashboard' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
-          <LayoutDashboard className="w-4 h-4" /> Dashboard
+          <LayoutDashboard className="w-4 h-4" /> <span className="hidden md:inline">Dashboard</span><span className="md:hidden">Dash</span>
         </button>
         <button 
           onClick={() => setActiveTab('schedule')}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
             activeTab === 'schedule' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
-          <CalendarDays className="w-4 h-4" /> Jadwal Lapangan
+          <CalendarDays className="w-4 h-4" /> <span className="hidden md:inline">Jadwal Lapangan</span><span className="md:hidden">Jadwal</span>
         </button>
         <button 
           onClick={() => setActiveTab('bookings')}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
             activeTab === 'bookings' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
-          <CalendarCheck className="w-4 h-4" /> Daftar Booking
+          <CalendarCheck className="w-4 h-4" /> <span className="hidden md:inline">Daftar Booking</span><span className="md:hidden">Booking</span>
         </button>
         <button 
           onClick={() => setActiveTab('courts')}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
             activeTab === 'courts' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
-          <Package className="w-4 h-4" /> Kelola Lapangan
+          <Package className="w-4 h-4" /> <span className="hidden md:inline">Kelola Lapangan</span><span className="md:hidden">Lapangan</span>
         </button>
         <button 
           onClick={() => setActiveTab('slots')}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
             activeTab === 'slots' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
-          <Clock className="w-4 h-4" /> Kelola Jam
+          <Clock className="w-4 h-4" /> <span className="hidden md:inline">Kelola Jam</span><span className="md:hidden">Jam</span>
         </button>
         <button 
           onClick={() => setActiveTab('contacts')}
           className={cn(
-            "w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+            "shrink-0 flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full gap-3",
             activeTab === 'contacts' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
           <div className="flex items-center gap-3">
-            <MessageSquare className="w-4 h-4" /> Pesan Masuk
+            <MessageSquare className="w-4 h-4" /> <span className="hidden md:inline">Pesan Masuk</span><span className="md:hidden">Pesan</span>
           </div>
           {messages.filter(m => !m.isRead).length > 0 && (
-            <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+            <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold ml-1 md:ml-0">
               {messages.filter(m => !m.isRead).length}
             </span>
           )}
@@ -784,28 +784,28 @@ export default function AdminPanel() {
         <button 
           onClick={() => setActiveTab('landing')}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
             activeTab === 'landing' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
           )}
         >
-          <LayoutDashboard className="w-4 h-4" /> Landing Page
+          <LayoutDashboard className="w-4 h-4" /> <span className="hidden md:inline">Landing Page</span><span className="md:hidden">Landing</span>
         </button>
         <button 
           onClick={() => setActiveTab('setup')}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+            "shrink-0 flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors md:w-full",
             activeTab === 'setup' ? "bg-orange-600 text-white" : "text-gray-600 hover:bg-orange-50 hover:text-orange-600"
           )}
         >
-          <Settings className="w-4 h-4" /> Setup Sistem
+          <Settings className="w-4 h-4" /> <span className="hidden md:inline">Setup Sistem</span><span className="md:hidden">Setup</span>
         </button>
-        <div className="pt-8 border-t">
-          <p className="px-4 text-[10px] uppercase font-bold text-gray-400 mb-2">Akun</p>
+        <div className="md:pt-8 md:border-t shrink-0 flex items-center md:block border-l md:border-l-0 pl-4 md:pl-0 ml-2 md:ml-0">
+          <p className="hidden md:block px-4 text-[10px] uppercase font-bold text-gray-400 mb-2">Akun</p>
           <button 
             onClick={() => auth.signOut()}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50"
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 md:w-full"
           >
-            <LogOut className="w-4 h-4" /> Logout
+            <LogOut className="w-4 h-4" /> <span className="hidden md:inline">Logout</span>
           </button>
         </div>
       </aside>
@@ -1247,13 +1247,13 @@ export default function AdminPanel() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <div className="flex p-1 bg-gray-100 rounded-lg">
+              <div className="flex flex-wrap sm:flex-nowrap p-1 bg-gray-100 rounded-lg gap-1">
                 {(['all', 'pending', 'verified', 'rejected'] as const).map((s) => (
                   <button
                     key={s}
                     onClick={() => setStatusFilter(s)}
                     className={cn(
-                      "px-4 py-2 text-xs font-bold rounded-md transition-all uppercase tracking-wider",
+                      "px-3 py-2 text-[10px] sm:text-xs font-bold rounded-md transition-all uppercase tracking-wider flex-1 sm:flex-none whitespace-nowrap",
                       statusFilter === s 
                         ? "bg-white text-blue-600 shadow-sm" 
                         : "text-gray-500 hover:text-gray-700"
@@ -1357,8 +1357,8 @@ export default function AdminPanel() {
                             </div>
                           </div>
 
-                          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2">
-                            <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2">
+                            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                               {b.status === 'pending' && (
                                 <>
                                   <Button 
@@ -1571,7 +1571,7 @@ export default function AdminPanel() {
 
         {activeTab === 'courts' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h2 className="text-2xl font-bold">Kelola Lapangan</h2>
               <Button size="sm" onClick={() => {
                 setEditingCourt(null);
@@ -1698,7 +1698,7 @@ export default function AdminPanel() {
 
         {activeTab === 'slots' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h2 className="text-2xl font-bold">Kelola Jam (Time Slots)</h2>
               <Button size="sm" onClick={() => {
                 setEditingSlot(null);
