@@ -719,7 +719,7 @@ export default function AdminPanel() {
   return (
     <div className="flex flex-col md:flex-row gap-6 min-h-[600px]">
       {/* Sidebar */}
-      <aside className="w-full md:w-64 flex flex-row md:flex-col overflow-x-auto md:overflow-visible gap-2 pb-2 md:pb-0 sticky top-0 bg-white md:static z-10 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide shrink-0 md:space-y-2">
+      <aside className="w-full md:w-64 flex flex-row flex-wrap md:flex-col gap-2 pb-2 md:pb-0 sticky top-0 bg-white md:static z-10 -mx-4 px-4 md:mx-0 md:px-0 shrink-0 md:space-y-2">
         <button 
           onClick={() => setActiveTab('dashboard')}
           className={cn(
@@ -819,11 +819,11 @@ export default function AdminPanel() {
                 <h2 className="text-3xl font-extrabold tracking-tight">Dashboard Overview</h2>
                 <p className="text-gray-500">Monitor performa penyewaan dan aktivitas terbaru.</p>
               </div>
-              <div className="flex gap-2 w-full sm:w-auto">
-                <Button variant="outline" size="sm" onClick={fetchData}>
+              <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                <Button variant="outline" size="sm" onClick={fetchData} className="flex-1 sm:flex-none">
                   <RefreshCw className="w-4 h-4 mr-2" /> Refresh
                 </Button>
-                <Button size="sm" onClick={() => setActiveTab('bookings')}>
+                <Button size="sm" onClick={() => setActiveTab('bookings')} className="flex-1 sm:flex-none">
                   <Plus className="w-4 h-4 mr-2" /> Buat Booking Baru
                 </Button>
               </div>
@@ -1173,15 +1173,15 @@ export default function AdminPanel() {
                               <span className={`text-[10px] uppercase tracking-wider font-bold ${court.status === 'available' ? 'text-green-600' : 'text-gray-400'}`}>
                                 {court.status === 'available' ? 'Tersedia' : 'Penuh'}
                               </span>
-                              {court.status === 'booked' && court.bookingId && (
-                                <div className="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 rounded-xl transition-all">
+                              {court.status === 'booked' && court.bookingId ? (
+                                <div className="mt-2 md:mt-0 md:absolute md:inset-0 md:bg-white/95 opacity-100 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center gap-1 md:gap-2 rounded-xl transition-all">
                                   <Button 
                                     size="icon" 
-                                    variant="ghost" 
-                                    className="h-8 w-8 text-blue-600 hover:bg-blue-50"
+                                    variant="outline" 
+                                    className="h-8 w-8 text-blue-600 hover:bg-blue-50 md:border-none"
                                     onClick={() => {
                                       setActiveTab('bookings');
-                                      // Optional: highlight or search the specific booking
+                                      setSearchQuery(bookings.find(b => b.id === court.bookingId)?.customerName || '');
                                     }}
                                     title="Detail/Edit"
                                   >
@@ -1189,12 +1189,27 @@ export default function AdminPanel() {
                                   </Button>
                                   <Button 
                                     size="icon" 
-                                    variant="ghost" 
-                                    className="h-8 w-8 text-red-600 hover:bg-red-50"
+                                    variant="outline" 
+                                    className="h-8 w-8 text-red-600 hover:bg-red-50 md:border-none"
                                     onClick={() => deleteBooking(court.bookingId!)}
                                     title="Hapus"
                                   >
                                     <Trash2 className="w-4 h-4" />
+                                  </Button>
+                                </div>
+                              ) : court.status === 'available' && (
+                                <div className="mt-2 md:mt-0 md:absolute md:inset-0 md:bg-white/95 opacity-100 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center gap-1 md:gap-2 rounded-xl transition-all">
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="h-8 text-green-600 hover:bg-green-50 md:border-none w-full md:w-auto"
+                                    onClick={() => {
+                                      setActiveTab('bookings');
+                                      // Optional: set search query to empty or show create form
+                                    }}
+                                    title="Buat Booking"
+                                  >
+                                    <Plus className="w-4 h-4 mr-1 md:mr-0" /> <span className="md:hidden">Booking</span>
                                   </Button>
                                 </div>
                               )}
@@ -1357,32 +1372,32 @@ export default function AdminPanel() {
                             </div>
                           </div>
 
-                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2">
-                            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-gray-100 mt-4">
+                            <div className="flex flex-col sm:flex-row flex-wrap items-center gap-2 w-full sm:w-auto">
                               {b.status === 'pending' && (
-                                <>
+                                <div className="flex gap-2 w-full sm:w-auto">
                                   <Button 
                                     size="sm" 
-                                    className="bg-green-600 hover:bg-green-700 h-10 px-6 font-bold"
+                                    className="bg-green-600 hover:bg-green-700 h-10 px-4 sm:px-6 font-bold flex-1 sm:flex-none whitespace-nowrap"
                                     onClick={() => updateBookingStatus(b.id, 'verified')}
                                   >
-                                    <Check className="w-4 h-4 mr-2" /> Terima & Lunas
+                                    <Check className="w-4 h-4 mr-2" /> Terima
                                   </Button>
                                   <Button 
                                     size="sm" 
                                     variant="outline" 
-                                    className="text-red-600 border-red-100 hover:bg-red-50 h-10 font-bold"
+                                    className="text-red-600 border-red-100 hover:bg-red-50 h-10 font-bold flex-1 sm:flex-none whitespace-nowrap"
                                     onClick={() => updateBookingStatus(b.id, 'rejected')}
                                   >
-                                    <X className="w-4 h-4 mr-2" /> Tolak Pesanan
+                                    <X className="w-4 h-4 mr-2" /> Tolak
                                   </Button>
-                                </>
+                                </div>
                               )}
                               {b.status === 'verified' && (
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
-                                  className="text-amber-600 hover:bg-amber-50 h-10 font-bold"
+                                  className="text-amber-600 hover:bg-amber-50 h-10 font-bold w-full sm:w-auto"
                                   onClick={() => updateBookingStatus(b.id, 'pending')}
                                 >
                                   <RefreshCw className="w-4 h-4 mr-2" /> Batal Verifikasi
@@ -1392,27 +1407,27 @@ export default function AdminPanel() {
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
-                                  className="text-blue-600 hover:bg-blue-50 h-10 font-bold"
+                                  className="text-blue-600 hover:bg-blue-50 h-10 font-bold w-full sm:w-auto"
                                   onClick={() => updateBookingStatus(b.id, 'pending')}
                                 >
-                                  <RefreshCw className="w-4 h-4 mr-2" /> Restore ke Pending
+                                  <RefreshCw className="w-4 h-4 mr-2" /> Restore
                                 </Button>
                               )}
                               <Button 
                                 size="sm" 
                                 variant="outline" 
-                                className="h-10 px-4 font-bold text-green-600 border-green-100 hover:bg-green-50"
+                                className="h-10 px-4 font-bold text-green-600 border-green-100 hover:bg-green-50 w-full sm:w-auto"
                                 onClick={() => sendWhatsAppNotification(b)}
                               >
-                                <Phone className="w-4 h-4 mr-2" /> Kirim Notif WA
+                                <Phone className="w-4 h-4 mr-2" /> Notif WA
                               </Button>
                             </div>
                             
-                            <div className="flex items-center gap-1 w-full sm:w-auto justify-end">
+                            <div className="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-t-0 border-gray-100 pt-2 sm:pt-0 mt-2 sm:mt-0">
                               <Button 
                                 variant="ghost" 
-                                size="icon"
-                                className="h-10 w-10 rounded-full hover:bg-blue-50 text-gray-400 hover:text-blue-600"
+                                size="sm"
+                                className="h-10 rounded-lg hover:bg-blue-50 text-gray-500 hover:text-blue-600 flex-1 sm:flex-none"
                                 onClick={() => {
                                   setEditingBooking(b);
                                   setBookingEditForm({ 
@@ -1426,15 +1441,15 @@ export default function AdminPanel() {
                                   });
                                 }}
                               >
-                                <Settings className="w-4 h-4" />
+                                <Settings className="w-4 h-4 mr-2" /> Edit
                               </Button>
                               <Button 
                                 variant="ghost" 
-                                size="icon" 
-                                className="h-10 w-10 rounded-full hover:bg-red-50 text-gray-400 hover:text-red-600"
+                                size="sm" 
+                                className="h-10 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-600 flex-1 sm:flex-none"
                                 onClick={() => deleteBooking(b.id)}
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className="w-4 h-4 mr-2" /> Hapus
                               </Button>
                             </div>
                           </div>
@@ -1662,16 +1677,17 @@ export default function AdminPanel() {
                       </Badge>
                     </div>
                   </div>
-                  <CardHeader className="flex flex-row items-start justify-between space-y-0 bg-white">
+                  <CardHeader className="flex flex-col sm:flex-row items-start justify-between space-y-4 sm:space-y-0 bg-white">
                     <div>
                       <CardTitle className="text-xl font-bold">{court.name}</CardTitle>
                       <CardDescription className="text-blue-600 font-bold">{formatCurrency(court.pricePerHour)} / jam</CardDescription>
                     </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="rounded-full" onClick={() => toggleCourtStatus(court)}>
-                        {court.isActive ? <XCircle className="w-4 h-4 text-amber-500" /> : <CheckCircle2 className="w-4 h-4 text-green-500" />}
+                    <div className="flex gap-1 self-end sm:self-auto w-full sm:w-auto justify-end border-t sm:border-t-0 border-gray-100 pt-3 sm:pt-0 mt-2 sm:mt-0">
+                      <Button variant="outline" size="sm" className="rounded-lg flex-1 sm:flex-none border-gray-200 text-gray-600 hover:bg-gray-50" onClick={() => toggleCourtStatus(court)}>
+                        {court.isActive ? <XCircle className="w-4 h-4 mr-2 text-amber-500" /> : <CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />}
+                        {court.isActive ? 'Matikan' : 'Aktifkan'}
                       </Button>
-                      <Button variant="ghost" size="icon" className="rounded-full" onClick={() => {
+                      <Button variant="outline" size="icon" className="rounded-lg border-gray-200 text-blue-600 hover:bg-blue-50" onClick={() => {
                         setEditingCourt(court);
                         setCourtForm({ 
                           name: court.name, 
@@ -1682,7 +1698,7 @@ export default function AdminPanel() {
                         });
                         setShowCourtForm(true);
                       }}><Settings className="w-4 h-4" /></Button>
-                      <Button variant="ghost" size="icon" className="rounded-full text-red-500 hover:bg-red-50" onClick={() => deleteCourt(court)}>
+                      <Button variant="outline" size="icon" className="rounded-lg border-red-200 text-red-500 hover:bg-red-50" onClick={() => deleteCourt(court)}>
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -1757,11 +1773,11 @@ export default function AdminPanel() {
                       <p className="text-sm font-black text-gray-800">{slot.startTime}</p>
                       <p className="text-[10px] text-gray-400 font-medium">{slot.endTime}</p>
                       
-                      <div className="absolute inset-0 bg-white/95 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-1 transition-all">
+                      <div className="mt-4 md:mt-0 md:absolute md:inset-0 md:bg-white/95 opacity-100 md:opacity-0 md:group-hover:opacity-100 flex items-center justify-center gap-2 transition-all">
                         <Button 
-                          variant="ghost" 
+                          variant="outline" 
                           size="icon" 
-                          className="h-8 w-8 rounded-full hover:bg-orange-50 hover:text-orange-600" 
+                          className="h-8 w-8 rounded-full hover:bg-orange-50 hover:text-orange-600 md:border-none" 
                           onClick={() => {
                             setEditingSlot(slot);
                             setSlotForm({ startTime: slot.startTime, endTime: slot.endTime, isActive: slot.isActive });
@@ -1772,18 +1788,18 @@ export default function AdminPanel() {
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button 
-                          variant="ghost" 
+                          variant="outline" 
                           size="icon" 
-                          className="h-8 w-8 rounded-full hover:bg-blue-50 hover:text-blue-600" 
+                          className="h-8 w-8 rounded-full hover:bg-blue-50 hover:text-blue-600 md:border-none" 
                           onClick={() => toggleSlotStatus(slot)}
                           title={slot.isActive ? "Matikan Slot" : "Aktifkan Slot"}
                         >
                           {slot.isActive ? <XCircle className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
                         </Button>
                         <Button 
-                          variant="ghost" 
+                          variant="outline" 
                           size="icon" 
-                          className="h-8 w-8 rounded-full hover:bg-red-50 hover:text-red-600"
+                          className="h-8 w-8 rounded-full hover:bg-red-50 hover:text-red-600 md:border-none"
                           onClick={() => deleteSlot(slot.id)}
                           title="Hapus Permanen"
                         >
@@ -1841,12 +1857,12 @@ export default function AdminPanel() {
                         </div>
                       </div>
 
-                      <div className="flex md:flex-col justify-end gap-2">
+                      <div className="flex flex-col sm:flex-row justify-end gap-2 border-t sm:border-t-0 border-gray-100 pt-4 sm:pt-0">
                         {!m.isRead && (
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="h-10 px-4 font-bold border-blue-200 text-blue-600 hover:bg-blue-50"
+                            className="h-10 px-4 font-bold border-blue-200 text-blue-600 hover:bg-blue-50 w-full sm:w-auto"
                             onClick={() => markAsRead(m.id)}
                           >
                             <Check className="w-4 h-4 mr-2" /> Tandai Dibaca
@@ -1855,7 +1871,7 @@ export default function AdminPanel() {
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-10 px-4 font-bold text-red-500 hover:bg-red-50"
+                          className="h-10 px-4 font-bold text-red-500 hover:bg-red-50 w-full sm:w-auto"
                           onClick={() => deleteMessage(m.id)}
                         >
                           <Trash2 className="w-4 h-4 mr-2" /> Hapus
@@ -1981,7 +1997,7 @@ export default function AdminPanel() {
                       )}
                     >
                       <img src={url} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" alt={`Hero ${idx}`} />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
                         <div className="flex gap-2">
                           <Button 
                             variant="secondary"

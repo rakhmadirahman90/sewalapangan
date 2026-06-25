@@ -1,31 +1,30 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import BookingForm from './components/BookingForm';
 import AdminPanel from './components/AdminPanel';
+import AdminLogin from './components/AdminLogin';
 import ContactForm from './components/ContactForm';
 import HeroSlider from './components/HeroSlider';
 import ScheduleModal from './components/ScheduleModal';
 import { Button } from './components/ui/Button';
 import { 
   Trophy, 
-  LayoutDashboard, 
   ArrowLeft, 
-  Github, 
-  Instagram, 
-  Twitter,
-  Shovel,
-  Zap,
-  ChevronRight
+  ChevronRight,
+  Lock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from './lib/utils';
 import { Toaster } from 'sonner';
 
 export default function App() {
-  const [view, setView] = useState<'guest' | 'admin' | 'contact' | 'booking'>('guest');
+  const isAdminRoute = typeof window !== 'undefined' && window.location.pathname === '/admin';
+  
+  const [view, setView] = useState<'guest' | 'contact' | 'booking'>(isAdminRoute ? 'guest' : 'guest'); // Using guest as fallback since view is irrelevant in admin mode
   const [scrolled, setScrolled] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [heroTitle, setHeroTitle] = useState('Main Badminton Lebih Mudah & Cepat');
   const [heroSubtitle, setHeroSubtitle] = useState('Pilih lapangan, tentukan jam, bayar, dan langsung main. Sistem booking modern tanpa perlu registrasi akun.');
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
   useEffect(() => {
     let unsub: () => void;
@@ -44,15 +43,46 @@ export default function App() {
         console.error("Error setting up hero listener:", e);
       }
     };
-    listenHeroSettings();
+    if (!isAdminRoute) {
+      listenHeroSettings();
+    }
     return () => unsub && unsub();
-  }, []);
+  }, [isAdminRoute]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  if (isAdminRoute) {
+    return (
+      <>
+        <Toaster position="top-center" richColors />
+        {isAdminAuthenticated ? (
+          <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
+            <div className="max-w-7xl mx-auto">
+              <div className="mb-8 flex justify-between items-center">
+                <div className="flex items-center gap-2 cursor-pointer group" onClick={() => window.location.href = '/'}>
+                  <div className="bg-blue-600 p-2 rounded-xl group-hover:rotate-12 transition-transform shadow-lg shadow-blue-500/50">
+                    <Trophy className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-black tracking-tighter uppercase italic leading-none text-gray-900">NetHub</h1>
+                    <p className="text-[10px] font-bold tracking-widest uppercase text-blue-600">Badminton Court</p>
+                  </div>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setIsAdminAuthenticated(false)}>Logout</Button>
+              </div>
+              <AdminPanel />
+            </div>
+          </div>
+        ) : (
+          <AdminLogin onLoginSuccess={() => setIsAdminAuthenticated(true)} />
+        )}
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-sans selection:bg-blue-100 selection:text-blue-900">
@@ -79,20 +109,7 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2 md:gap-4">
-            {view === 'guest' ? (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setView('admin')}
-                className={cn(
-                  "font-semibold px-2 md:px-4 transition-colors hover:bg-white/10",
-                  scrolled ? "text-gray-500 hover:text-blue-600" : "text-gray-200 hover:text-white"
-                )}
-              >
-                <LayoutDashboard className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">Admin Panel</span>
-              </Button>
-            ) : (
+            {view !== 'guest' && (
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -259,7 +276,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3 }}
-                className="max-w-4xl mx-auto py-12"
+                className="max-w-4xl mx-auto py-12 pt-24"
               >
                 <div className="text-center mb-12">
                   <h2 className="text-3xl font-black text-gray-900 tracking-tight">Butuh Bantuan?</h2>
@@ -276,25 +293,18 @@ export default function App() {
                   </Button>
                 </div>
               </motion.div>
-            ) : (
-              <motion.div
-                key="admin-view"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <AdminPanel />
-              </motion.div>
-            )}
+            ) : null}
           </AnimatePresence>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-100 py-4 px-6">
-        <div className="max-w-7xl mx-auto flex justify-center items-center text-xs text-gray-400">
-          <p>© 2026 Badminton Booking System. All rights reserved.</p>
+      <footer className="bg-white border-t border-gray-100 py-4 px-6 relative z-10">
+        <div className="max-w-7xl mx-auto flex justify-between items-center text-xs text-gray-400">
+          <p>© 2026 NetHub Badminton. All rights reserved.</p>
+          <a href="/admin" className="text-gray-200 hover:text-gray-400 transition-colors" title="Admin Login">
+            <Lock className="w-3 h-3" />
+          </a>
         </div>
       </footer>
     </div>
