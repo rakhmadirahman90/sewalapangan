@@ -22,12 +22,11 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
 
     setLoading(true);
     try {
-      // High compression: 0.7 quality is visually indistinguishable for web but saves lots of space
       const compressed = await compressImage(file, 1080, 1080, 0.7);
       onChange(compressed);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Compression error:', error);
-      alert('Gagal mengompres gambar. Silakan coba file lain.');
+      alert(error.message || 'Gagal mengompres gambar. Silakan coba file lain.');
     } finally {
       setLoading(false);
     }

@@ -90,18 +90,26 @@ export default function HeroSlider() {
             />
           )}
 
-          {/* Sophisticated Dark Overlay System */}
-          {/* 1. Base Darkening for Contrast - Blue tinted */}
-          <div className="absolute inset-0 bg-blue-900/30 mix-blend-multiply" />
+          {/* Adaptive Vibrant Overlay (Matches the image's own colors) */}
+          {images.length > 0 && (
+            <div 
+              className="absolute inset-0 bg-cover bg-center blur-2xl opacity-40 mix-blend-overlay scale-110 transition-all duration-1000"
+              style={{ backgroundImage: `url(${images[index]})` }}
+            />
+          )}
+
+          {/* Modern Bright Badminton Theme Overlay */}
+          {/* 1. Base Contrast (Lighten slightly to keep it bright but ensure white text readable) */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-indigo-900/30 mix-blend-multiply" />
           
-          {/* 2. Radial Vignette (Draws focus to center) - Sporty blue/slate */}
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-blue-950/30 to-slate-900/80" />
+          {/* 2. Soft Vignette to draw focus */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-transparent to-black/40" />
           
-          {/* 3. Bottom Gradient for smooth transition to next section */}
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-50 via-slate-900/50 to-transparent opacity-100" />
+          {/* 3. Bottom Gradient for smooth transition to the gray-50 background of the app */}
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-50 via-gray-900/10 to-transparent opacity-100" />
           
-          {/* 4. Top Gradient to protect the header */}
-          <div className="absolute inset-0 bg-gradient-to-b from-blue-900/40 via-transparent to-transparent opacity-70" />
+          {/* 4. Top Gradient to protect the white header text */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent opacity-60" />
           
           {/* 5. Subtle Texture/Noise (Adds premium feel) */}
           <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />

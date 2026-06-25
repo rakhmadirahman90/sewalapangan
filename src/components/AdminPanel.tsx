@@ -190,6 +190,12 @@ export default function AdminPanel() {
     }
 
     try {
+      const totalSize = JSON.stringify(updatedImages).length;
+      if (totalSize > 900000) { // Keep under ~900KB to be safe (Firestore limit is 1MB)
+        toast.error("Total ukuran gambar terlalu besar. Silakan hapus gambar lama terlebih dahulu atau gunakan gambar yang lebih kecil.");
+        return;
+      }
+      
       await setDoc(doc(db, 'settings', 'hero'), { images: updatedImages }, { merge: true });
       setHeroImages(updatedImages);
       setNewHeroImageUrl('');
