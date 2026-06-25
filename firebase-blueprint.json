@@ -56,6 +56,30 @@
         "email": { "type": "string" }
       },
       "required": ["uid", "email"]
+    },
+    "ContactMessage": {
+      "title": "ContactMessage",
+      "description": "Message from contact form",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "whatsapp": { "type": "string" },
+        "subject": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isRead": { "type": "boolean" }
+      },
+      "required": ["id", "name", "email", "whatsapp", "subject", "message", "createdAt"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Application settings",
+      "type": "object",
+      "properties": {
+        "images": { "type": "array", "items": { "type": "string" } }
+      }
     }
   },
   "firestore": {
@@ -74,6 +98,14 @@
     "/admins/{adminId}": {
       "schema": "Admin",
       "description": "Collection of admin users"
+    },
+    "/contacts/{contactId}": {
+      "schema": "ContactMessage",
+      "description": "Collection of contact messages"
+    },
+    "/settings/{settingId}": {
+      "schema": "Settings",
+      "description": "Collection of application settings"
     }
   }
 }

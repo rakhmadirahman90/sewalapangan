@@ -39,7 +39,8 @@ import {
   AlertCircle,
   Receipt,
   Menu,
-  MessageSquare
+  MessageSquare,
+  Image as ImageIcon
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval, subDays, startOfDay, endOfDay } from 'date-fns';
 import { motion, AnimatePresence } from 'motion/react';
@@ -63,7 +64,12 @@ export default function AdminPanel() {
   const [user, setUser] = useState<User | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'courts' | 'slots' | 'contacts' | 'setup'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'courts' | 'slots' | 'contacts' | 'setup' | 'landing'>('dashboard');
+  const [isSavingHero, setIsSavingHero] = useState(false);
+  const [heroImages, setHeroImages] = useState<string[]>([]);
+  const [newHeroImageUrl, setNewHeroImageUrl] = useState('');
+  const [editingHeroIndex, setEditingHeroIndex] = useState<number | null>(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
@@ -134,6 +140,57 @@ export default function AdminPanel() {
     // Fetch Messages
     const mSnap = await getDocs(query(collection(db, 'contacts'), orderBy('createdAt', 'desc')));
     setMessages(mSnap.docs.map(d => ({ id: d.id, ...d.data() } as ContactMessage)));
+
+    // Fetch Hero Images
+    const hDoc = await getDoc(doc(db, 'settings', 'hero'));
+    if (hDoc.exists()) {
+      setHeroImages(hDoc.data().images || []);
+    }
+  };
+
+  const handleSaveHeroImage = async () => {
+    if (!newHeroImageUrl) return;
+    
+    setIsSavingHero(true);
+    let updatedImages;
+    if (editingHeroIndex !== null) {
+      updatedImages = [...heroImages];
+      updatedImages[editingHeroIndex] = newHeroImageUrl;
+    } else {
+      updatedImages = [...heroImages, newHeroImageUrl];
+    }
+
+    try {
+      await setDoc(doc(db, 'settings', 'hero'), { images: updatedImages });
+      setHeroImages(updatedImages);
+      setNewHeroImageUrl('');
+      setEditingHeroIndex(null);
+      toast.success(editingHeroIndex !== null ? "Gambar hero berhasil diperbarui" : "Gambar hero berhasil ditambahkan");
+    } catch (e) {
+      console.error(e);
+      toast.error("Gagal menyimpan gambar hero. Pastikan ukuran file tidak terlalu besar.");
+    } finally {
+      setIsSavingHero(false);
+    }
+  };
+
+  const handleEditHeroImage = (idx: number) => {
+    setEditingHeroIndex(idx);
+    setNewHeroImageUrl(heroImages[idx]);
+    // Scroll to upload form
+    document.getElementById('hero-upload-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleDeleteHeroImage = async (idx: number) => {
+    const updatedImages = heroImages.filter((_, i) => i !== idx);
+    try {
+      await setDoc(doc(db, 'settings', 'hero'), { images: updatedImages });
+      setHeroImages(updatedImages);
+      toast.success("Gambar hero berhasil dihapus");
+    } catch (e) {
+      console.error(e);
+      toast.error("Gagal menghapus gambar hero");
+    }
   };
 
   const handleSaveCourt = async () => {
@@ -300,6 +357,17 @@ export default function AdminPanel() {
     } catch (e) {
       console.error(e);
       toast.error("Gagal menghapus slot");
+    }
+  };
+
+  const markAsRead = async (id: string) => {
+    try {
+      await updateDoc(doc(db, 'contacts', id), { isRead: true });
+      setMessages(prev => prev.map(m => m.id === id ? { ...m, isRead: true } : m));
+      toast.success("Pesan ditandai sebagai dibaca");
+    } catch (e) {
+      console.error(e);
+      toast.error("Gagal memperbarui status pesan");
     }
   };
 
@@ -618,6 +686,15 @@ export default function AdminPanel() {
               {messages.filter(m => !m.isRead).length}
             </span>
           )}
+        </button>
+        <button 
+          onClick={() => setActiveTab('landing')}
+          className={cn(
+            "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+            activeTab === 'landing' ? "bg-blue-600 text-white" : "text-gray-600 hover:bg-gray-100"
+          )}
+        >
+          <LayoutDashboard className="w-4 h-4" /> Landing Page
         </button>
         <button 
           onClick={() => setActiveTab('setup')}
@@ -1140,7 +1217,7 @@ export default function AdminPanel() {
               <h2 className="text-2xl font-bold">Kelola Lapangan</h2>
               <Button size="sm" onClick={() => {
                 setEditingCourt(null);
-                setCourtForm({ name: '', pricePerHour: 0, description: '', imageUrl: '' });
+                setCourtForm({ name: '', pricePerHour: 0, description: '', imageUrl: '', isActive: true });
                 setShowCourtForm(true);
               }}>
                 <Plus className="w-4 h-4 mr-2" /> Tambah Lapangan
@@ -1426,6 +1503,146 @@ export default function AdminPanel() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'landing' && (
+          <div className="space-y-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-3xl font-black tracking-tight text-gray-900">Landing Page</h2>
+                <p className="text-gray-500">Kelola visual utama website untuk menarik pengunjung.</p>
+              </div>
+              {editingHeroIndex !== null && (
+                <Button variant="outline" onClick={() => { setEditingHeroIndex(null); setNewHeroImageUrl(''); }}>
+                  Batal Edit
+                </Button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Upload Section */}
+              <Card id="hero-upload-section" className="lg:col-span-1 border-none shadow-xl bg-blue-50/50">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="w-5 h-5 text-blue-600" />
+                    {editingHeroIndex !== null ? 'Edit Gambar' : 'Tambah Gambar'}
+                  </CardTitle>
+                  <CardDescription>
+                    Unggah gambar baru untuk slider background. Gambar akan dikompresi otomatis.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <ImageUpload 
+                    value={newHeroImageUrl} 
+                    onChange={setNewHeroImageUrl}
+                    className="bg-white"
+                  />
+                  <Button 
+                    className="w-full font-bold h-12 shadow-lg shadow-blue-200" 
+                    disabled={!newHeroImageUrl || isSavingHero}
+                    onClick={handleSaveHeroImage}
+                  >
+                    {isSavingHero ? (
+                      <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Menyimpan...</>
+                    ) : (
+                      editingHeroIndex !== null ? 'Simpan Perubahan' : 'Tambahkan ke Slider'
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* List Section */}
+              <div className="lg:col-span-2 space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-black text-gray-900 uppercase tracking-widest text-sm">Urutan Slider ({heroImages.length})</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {heroImages.map((url, idx) => (
+                    <motion.div 
+                      key={idx}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className={cn(
+                        "group relative rounded-3xl overflow-hidden aspect-video border-4 transition-all duration-300",
+                        editingHeroIndex === idx ? "border-blue-500 ring-4 ring-blue-100" : "border-white shadow-lg"
+                      )}
+                    >
+                      <img src={url} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" alt={`Hero ${idx}`} />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="secondary"
+                            size="sm"
+                            className="flex-1 font-bold h-9 bg-white/90 hover:bg-white text-gray-900"
+                            onClick={() => setPreviewImageUrl(url)}
+                          >
+                            <Eye className="w-4 h-4 mr-2" /> View
+                          </Button>
+                          <Button 
+                            variant="secondary"
+                            size="sm"
+                            className="flex-1 font-bold h-9 bg-white/90 hover:bg-white text-gray-900"
+                            onClick={() => handleEditHeroImage(idx)}
+                          >
+                            <Settings className="w-4 h-4 mr-2" /> Edit
+                          </Button>
+                          <Button 
+                            variant="destructive" 
+                            size="sm" 
+                            className="w-10 h-9 p-0"
+                            onClick={() => handleDeleteHeroImage(idx)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-md text-white text-[10px] font-black px-2 py-1 rounded-full border border-white/20">
+                        SLIDE {idx + 1}
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {heroImages.length === 0 && (
+                    <div className="col-span-full py-20 flex flex-col items-center justify-center bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 text-gray-400">
+                      <ImageIcon className="w-12 h-12 mb-4 opacity-20" />
+                      <p className="font-bold">Belum ada gambar custom</p>
+                      <p className="text-xs">Slider akan menampilkan gambar default.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Preview Modal */}
+            <AnimatePresence>
+              {previewImageUrl && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-12 bg-black/90 backdrop-blur-sm"
+                  onClick={() => setPreviewImageUrl(null)}
+                >
+                  <Button 
+                    className="absolute top-6 right-6 z-10 bg-white/10 hover:bg-white/20 text-white rounded-full w-12 h-12"
+                    variant="ghost"
+                    size="icon"
+                  >
+                    <X className="w-6 h-6" />
+                  </Button>
+                  <motion.img 
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    src={previewImageUrl} 
+                    className="max-w-full max-h-full object-contain rounded-xl shadow-2xl" 
+                    alt="Preview Full" 
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 
