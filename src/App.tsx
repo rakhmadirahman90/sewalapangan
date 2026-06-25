@@ -22,6 +22,29 @@ import { Toaster } from 'sonner';
 export default function App() {
   const [view, setView] = useState<'guest' | 'admin' | 'contact'>('guest');
   const [scrolled, setScrolled] = useState(false);
+  const [heroTitle, setHeroTitle] = useState('Main Badminton Lebih Mudah & Cepat');
+  const [heroSubtitle, setHeroSubtitle] = useState('Pilih lapangan, tentukan jam, bayar, dan langsung main. Sistem booking modern tanpa perlu registrasi akun.');
+
+  useEffect(() => {
+    let unsub: () => void;
+    const listenHeroSettings = async () => {
+      try {
+        const { db } = await import('./lib/firebase');
+        const { doc, onSnapshot } = await import('firebase/firestore');
+        unsub = onSnapshot(doc(db, 'settings', 'hero'), (docSnap) => {
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.heroTitle) setHeroTitle(data.heroTitle);
+            if (data.heroSubtitle) setHeroSubtitle(data.heroSubtitle);
+          }
+        });
+      } catch (e) {
+        console.error("Error setting up hero listener:", e);
+      }
+    };
+    listenHeroSettings();
+    return () => unsub && unsub();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -121,20 +144,7 @@ export default function App() {
                 transition={{ delay: 0.4 }}
                 className="text-5xl md:text-8xl font-black text-gray-900 tracking-tight leading-[0.95]"
               >
-                Main Badminton Lebih <br /> 
-                <span className="text-blue-600 relative inline-block">
-                  Mudah & Cepat
-                  <motion.svg 
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ delay: 1, duration: 0.8 }}
-                    className="absolute -bottom-2 left-0 w-full h-3 text-blue-200" 
-                    viewBox="0 0 100 10" 
-                    preserveAspectRatio="none"
-                  >
-                    <path d="M0 5 Q 25 0 50 5 T 100 5" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round" />
-                  </motion.svg>
-                </span>
+                {heroTitle}
               </motion.h2>
               
               <motion.p 
@@ -143,8 +153,7 @@ export default function App() {
                 transition={{ delay: 0.6 }}
                 className="max-w-2xl mx-auto text-gray-600 text-lg md:text-2xl font-medium leading-relaxed"
               >
-                Pilih lapangan, tentukan jam, bayar, dan langsung main. <br className="hidden md:block" />
-                Sistem booking modern yang didesain untuk kenyamanan Anda.
+                {heroSubtitle}
               </motion.p>
             </div>
           </motion.section>

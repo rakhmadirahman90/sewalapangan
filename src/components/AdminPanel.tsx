@@ -67,6 +67,8 @@ export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'bookings' | 'courts' | 'slots' | 'contacts' | 'setup' | 'landing'>('dashboard');
   const [isSavingHero, setIsSavingHero] = useState(false);
   const [heroImages, setHeroImages] = useState<string[]>([]);
+  const [heroTitle, setHeroTitle] = useState('Main Badminton Lebih Mudah & Cepat');
+  const [heroSubtitle, setHeroSubtitle] = useState('Pilih lapangan, tentukan jam, bayar, dan langsung main. Sistem booking modern tanpa perlu registrasi akun.');
   const [newHeroImageUrl, setNewHeroImageUrl] = useState('');
   const [editingHeroIndex, setEditingHeroIndex] = useState<number | null>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
@@ -141,10 +143,27 @@ export default function AdminPanel() {
     const mSnap = await getDocs(query(collection(db, 'contacts'), orderBy('createdAt', 'desc')));
     setMessages(mSnap.docs.map(d => ({ id: d.id, ...d.data() } as ContactMessage)));
 
-    // Fetch Hero Images
+    // Fetch Hero Images & Settings
     const hDoc = await getDoc(doc(db, 'settings', 'hero'));
     if (hDoc.exists()) {
-      setHeroImages(hDoc.data().images || []);
+      const data = hDoc.data();
+      setHeroImages(data.images || []);
+      if (data.heroTitle) setHeroTitle(data.heroTitle);
+      if (data.heroSubtitle) setHeroSubtitle(data.heroSubtitle);
+    }
+  };
+
+  const handleSaveHeroSettings = async () => {
+    try {
+      await setDoc(doc(db, 'settings', 'hero'), { 
+        images: heroImages,
+        heroTitle,
+        heroSubtitle
+      }, { merge: true });
+      toast.success("Pengaturan hero berhasil disimpan");
+    } catch (e) {
+      console.error(e);
+      toast.error("Gagal menyimpan pengaturan hero");
     }
   };
 
@@ -161,7 +180,7 @@ export default function AdminPanel() {
     }
 
     try {
-      await setDoc(doc(db, 'settings', 'hero'), { images: updatedImages });
+      await setDoc(doc(db, 'settings', 'hero'), { images: updatedImages }, { merge: true });
       setHeroImages(updatedImages);
       setNewHeroImageUrl('');
       setEditingHeroIndex(null);
@@ -184,7 +203,7 @@ export default function AdminPanel() {
   const handleDeleteHeroImage = async (idx: number) => {
     const updatedImages = heroImages.filter((_, i) => i !== idx);
     try {
-      await setDoc(doc(db, 'settings', 'hero'), { images: updatedImages });
+      await setDoc(doc(db, 'settings', 'hero'), { images: updatedImages }, { merge: true });
       setHeroImages(updatedImages);
       toast.success("Gambar hero berhasil dihapus");
     } catch (e) {
@@ -1521,6 +1540,41 @@ export default function AdminPanel() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Text Settings Section */}
+              <Card className="lg:col-span-3 border-none shadow-xl bg-white">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="w-5 h-5 text-blue-600" />
+                    Pengaturan Teks Hero
+                  </CardTitle>
+                  <CardDescription>
+                    Ubah judul dan sub-judul yang muncul di halaman depan.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-gray-700">Judul Utama</label>
+                    <Input 
+                      value={heroTitle}
+                      onChange={(e) => setHeroTitle(e.target.value)}
+                      placeholder="Contoh: Main Badminton Lebih Mudah & Cepat"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-bold text-gray-700">Sub-judul</label>
+                    <textarea 
+                      className="w-full min-h-[100px] p-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                      value={heroSubtitle}
+                      onChange={(e) => setHeroSubtitle(e.target.value)}
+                      placeholder="Contoh: Pilih lapangan, tentukan jam, bayar, dan langsung main..."
+                    />
+                  </div>
+                  <Button onClick={handleSaveHeroSettings} className="bg-blue-600 hover:bg-blue-700">
+                    Simpan Teks Hero
+                  </Button>
+                </CardContent>
+              </Card>
+
               {/* Upload Section */}
               <Card id="hero-upload-section" className="lg:col-span-1 border-none shadow-xl bg-blue-50/50">
                 <CardHeader>

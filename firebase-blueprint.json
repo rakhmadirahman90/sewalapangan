@@ -78,7 +78,9 @@
       "description": "Application settings",
       "type": "object",
       "properties": {
-        "images": { "type": "array", "items": { "type": "string" } }
+        "images": { "type": "array", "items": { "type": "string" } },
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" }
       }
     }
   },
